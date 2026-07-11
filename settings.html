@@ -2,55 +2,746 @@
 <html lang="tr">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <title>Motor Rider - Ayarlar</title>
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
+        :root {
+            --bg: #0a0a0a;
+            --accent: #ff4d00;
+            --accent2: #ff8800;
+            --text: #ffffff;
+            --text-secondary: #aaaaaa;
+            --card-bg: rgba(20, 20, 20, 0.9);
+            --border: rgba(255, 77, 0, 0.3);
+            --slider-track: #333;
+            --slider-fill: #ff4d00;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
         body {
             font-family: 'Segoe UI', 'Arial', sans-serif;
             background: #0a0a0a;
-            height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            flex-direction: column;
-            gap: 20px;
-            color: #ffffff;
+            min-height: 100vh;
+            color: var(--text);
+            user-select: none;
+            -webkit-user-select: none;
+            -webkit-tap-highlight-color: transparent;
+            overflow-y: auto;
+            overflow-x: hidden;
         }
+
+        /* Arka plan efekti */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(ellipse at top, rgba(255,77,0,0.08) 0%, transparent 60%),
+                        radial-gradient(ellipse at bottom, rgba(255,136,0,0.05) 0%, transparent 60%);
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        /* Geri butonu */
         .back-btn {
             position: fixed;
             top: 20px;
             left: 20px;
-            background: rgba(20,20,20,0.85);
-            border: 2px solid rgba(255,77,0,0.4);
+            z-index: 100;
+            background: rgba(20, 20, 20, 0.85);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 2px solid rgba(255, 77, 0, 0.4);
             border-radius: 50%;
-            width: 50px;
-            height: 50px;
+            width: 48px;
+            height: 48px;
             display: flex;
             align-items: center;
             justify-content: center;
-            color: #fff;
-            text-decoration: none;
-            font-size: 24px;
+            cursor: pointer;
             transition: all 0.3s;
+            color: #fff;
+            font-size: 22px;
+            text-decoration: none;
         }
+
         .back-btn:hover {
             border-color: #ff4d00;
-            box-shadow: 0 0 20px rgba(255,77,0,0.3);
+            transform: scale(1.1);
+            box-shadow: 0 0 25px rgba(255, 77, 0, 0.3);
         }
-        h1 {
-            font-size: clamp(24px, 5vw, 40px);
-            text-transform: uppercase;
+
+        /* Ana konteyner */
+        .settings-container {
+            position: relative;
+            z-index: 1;
+            max-width: 700px;
+            margin: 0 auto;
+            padding: 100px 25px 60px;
+        }
+
+        /* Başlık */
+        .settings-title {
+            text-align: center;
+            margin-bottom: 50px;
+        }
+
+        .settings-title h1 {
+            font-size: clamp(28px, 5vw, 44px);
+            font-weight: 900;
             letter-spacing: 3px;
-            text-shadow: 0 0 30px rgba(255,77,0,0.5);
+            text-transform: uppercase;
+            text-shadow: 0 0 30px rgba(255, 77, 0, 0.5);
         }
-        p { color: #888; font-size: 18px; }
+
+        .settings-title .icon {
+            font-size: 40px;
+            display: block;
+            margin-bottom: 10px;
+        }
+
+        /* Kart */
+        .settings-card {
+            background: var(--card-bg);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 2px solid var(--border);
+            border-radius: 20px;
+            padding: 30px;
+            margin-bottom: 25px;
+            transition: all 0.3s;
+        }
+
+        .settings-card:hover {
+            border-color: rgba(255, 77, 0, 0.6);
+        }
+
+        .settings-card h2 {
+            font-size: clamp(18px, 3vw, 22px);
+            font-weight: 700;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            margin-bottom: 25px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            color: #ff4d00;
+        }
+
+        .settings-card h2 .section-icon {
+            font-size: 26px;
+        }
+
+        /* Mod seçimi (Bilgisayar / Telefon) */
+        .mode-selector {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+
+        .mode-btn {
+            flex: 1;
+            min-width: 140px;
+            background: rgba(30, 30, 30, 0.8);
+            border: 2px solid rgba(255, 255, 255, 0.15);
+            border-radius: 16px;
+            padding: 20px 15px;
+            cursor: pointer;
+            transition: all 0.35s;
+            text-align: center;
+            color: #fff;
+        }
+
+        .mode-btn:hover {
+            border-color: rgba(255, 77, 0, 0.5);
+            background: rgba(40, 40, 40, 0.9);
+        }
+
+        .mode-btn.active {
+            border-color: #ff4d00;
+            background: rgba(255, 77, 0, 0.15);
+            box-shadow: 0 0 25px rgba(255, 77, 0, 0.3);
+            transform: scale(1.03);
+        }
+
+        .mode-btn .mode-icon {
+            font-size: 40px;
+            display: block;
+            margin-bottom: 10px;
+        }
+
+        .mode-btn .mode-label {
+            font-size: 16px;
+            font-weight: 700;
+            letter-spacing: 1px;
+        }
+
+        .mode-btn .mode-desc {
+            font-size: 12px;
+            color: #888;
+            margin-top: 5px;
+        }
+
+        /* Slider stilleri */
+        .setting-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .setting-label {
+            font-size: 15px;
+            font-weight: 600;
+            letter-spacing: 1px;
+            color: var(--text-secondary);
+            min-width: 100px;
+        }
+
+        .setting-value {
+            font-size: 13px;
+            color: #ff4d00;
+            font-weight: 700;
+            min-width: 50px;
+            text-align: right;
+        }
+
+        /* Özel slider */
+        input[type="range"] {
+            -webkit-appearance: none;
+            width: 100%;
+            max-width: 250px;
+            height: 8px;
+            border-radius: 4px;
+            background: var(--slider-track);
+            outline: none;
+            cursor: pointer;
+        }
+
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 26px;
+            height: 26px;
+            border-radius: 50%;
+            background: #ff4d00;
+            cursor: pointer;
+            border: 3px solid #fff;
+            box-shadow: 0 0 15px rgba(255, 77, 0, 0.5);
+            transition: all 0.2s;
+        }
+
+        input[type="range"]::-webkit-slider-thumb:hover {
+            transform: scale(1.2);
+            box-shadow: 0 0 25px rgba(255, 77, 0, 0.8);
+        }
+
+        /* Seçenek butonları */
+        .option-buttons {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .option-btn {
+            background: rgba(30, 30, 30, 0.8);
+            border: 2px solid rgba(255, 255, 255, 0.15);
+            border-radius: 25px;
+            padding: 10px 18px;
+            cursor: pointer;
+            transition: all 0.3s;
+            color: #fff;
+            font-size: 13px;
+            font-weight: 600;
+            letter-spacing: 1px;
+        }
+
+        .option-btn:hover {
+            border-color: rgba(255, 77, 0, 0.5);
+        }
+
+        .option-btn.selected {
+            border-color: #ff4d00;
+            background: rgba(255, 77, 0, 0.2);
+            color: #ff4d00;
+            box-shadow: 0 0 15px rgba(255, 77, 0, 0.2);
+        }
+
+        /* Toggle switch */
+        .toggle-switch {
+            position: relative;
+            width: 55px;
+            height: 30px;
+            flex-shrink: 0;
+        }
+
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .toggle-slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: #333;
+            border-radius: 30px;
+            transition: 0.3s;
+            border: 2px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .toggle-slider:before {
+            content: '';
+            position: absolute;
+            height: 22px;
+            width: 22px;
+            left: 2px;
+            bottom: 2px;
+            background: #fff;
+            border-radius: 50%;
+            transition: 0.3s;
+        }
+
+        input:checked + .toggle-slider {
+            background: #ff4d00;
+            border-color: #ff4d00;
+        }
+
+        input:checked + .toggle-slider:before {
+            transform: translateX(25px);
+        }
+
+        /* Bilgisayar modu uyarısı */
+        .pc-notice {
+            background: rgba(255, 77, 0, 0.1);
+            border: 1px solid rgba(255, 77, 0, 0.3);
+            border-radius: 12px;
+            padding: 15px;
+            margin-top: 20px;
+            display: none;
+            font-size: 14px;
+            color: #ffaa66;
+            line-height: 1.6;
+        }
+
+        .pc-notice.show {
+            display: block;
+        }
+
+        .pc-notice .keys {
+            display: inline-flex;
+            gap: 6px;
+            flex-wrap: wrap;
+            margin-top: 8px;
+        }
+
+        .key-badge {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 6px;
+            padding: 4px 10px;
+            font-size: 12px;
+            font-weight: 700;
+            letter-spacing: 1px;
+        }
+
+        /* Kaydet butonu */
+        .save-btn {
+            display: block;
+            width: 100%;
+            max-width: 300px;
+            margin: 30px auto 0;
+            background: #ff4d00;
+            border: none;
+            border-radius: 30px;
+            padding: 16px 30px;
+            cursor: pointer;
+            transition: all 0.3s;
+            color: #000;
+            font-size: 17px;
+            font-weight: 700;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            box-shadow: 0 0 30px rgba(255, 77, 0, 0.3);
+        }
+
+        .save-btn:hover {
+            background: #ff6622;
+            transform: scale(1.03);
+            box-shadow: 0 0 50px rgba(255, 77, 0, 0.5);
+        }
+
+        .save-btn:active {
+            transform: scale(0.97);
+        }
+
+        .save-message {
+            text-align: center;
+            margin-top: 15px;
+            font-size: 14px;
+            color: #00ff88;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .save-message.show {
+            opacity: 1;
+        }
+
+        /* Responsive */
+        @media (max-width: 600px) {
+            .settings-container {
+                padding: 85px 15px 40px;
+            }
+            .settings-card {
+                padding: 20px 15px;
+            }
+            .mode-btn {
+                padding: 15px 10px;
+            }
+            .mode-btn .mode-icon {
+                font-size: 30px;
+            }
+            input[type="range"] {
+                max-width: 180px;
+            }
+        }
     </style>
 </head>
 <body>
+
+    <!-- Geri butonu -->
     <a href="index.html" class="back-btn">←</a>
-    <h1>⚙️ AYARLAR</h1>
-    <p>🚧 Ayarlar yapım aşamasında...</p>
-    <p style="font-size:14px;">Grafik ve kontrol ayarları yakında!</p>
+
+    <!-- Ana konteyner -->
+    <div class="settings-container">
+
+        <!-- Başlık -->
+        <div class="settings-title">
+            <span class="icon">⚙️</span>
+            <h1>Ayarlar</h1>
+        </div>
+
+        <!-- MOD SEÇİMİ -->
+        <div class="settings-card">
+            <h2>
+                <span class="section-icon">📱</span>
+                Oyun Modu
+            </h2>
+            <div class="mode-selector">
+                <div class="mode-btn active" id="mode-phone" onclick="selectMode('phone')">
+                    <span class="mode-icon">📱</span>
+                    <span class="mode-label">TELEFON</span>
+                    <span class="mode-desc">Dokunmatik kontroller</span>
+                </div>
+                <div class="mode-btn" id="mode-pc" onclick="selectMode('pc')">
+                    <span class="mode-icon">🖥️</span>
+                    <span class="mode-label">BİLGİSAYAR</span>
+                    <span class="mode-desc">Sadece gösterge paneli</span>
+                </div>
+            </div>
+            <!-- Bilgisayar modu bilgilendirme -->
+            <div class="pc-notice" id="pc-notice">
+                🎮 <strong>Bilgisayar Modu:</strong> Tuşlar ekranda gözükmez. Gösterge panelinde hız, vites, devir ve para görünür.
+                <div class="keys">
+                    <span class="key-badge">W / ↑</span> Gaz
+                    <span class="key-badge">S / ↓</span> Fren
+                    <span class="key-badge">A-D / ←→</span> Dönüş
+                    <span class="key-badge">Shift</span> Ön kaldırma
+                </div>
+            </div>
+        </div>
+
+        <!-- GRAFİK AYARLARI -->
+        <div class="settings-card">
+            <h2>
+                <span class="section-icon">🎨</span>
+                Grafik Ayarları
+            </h2>
+
+            <!-- Grafik kalitesi -->
+            <div class="setting-row">
+                <span class="setting-label">Kalite</span>
+                <div class="option-buttons" id="quality-options">
+                    <button class="option-btn" data-quality="low" onclick="setQuality('low')">DÜŞÜK</button>
+                    <button class="option-btn selected" data-quality="medium" onclick="setQuality('medium')">ORTA</button>
+                    <button class="option-btn" data-quality="high" onclick="setQuality('high')">YÜKSEK</button>
+                </div>
+            </div>
+
+            <!-- Çözünürlük -->
+            <div class="setting-row">
+                <span class="setting-label">Çözünürlük</span>
+                <div class="option-buttons" id="resolution-options">
+                    <button class="option-btn" data-res="480p" onclick="setResolution('480p')">480p</button>
+                    <button class="option-btn selected" data-res="720p" onclick="setResolution('720p')">720p</button>
+                    <button class="option-btn" data-res="1080p" onclick="setResolution('1080p')">1080p</button>
+                </div>
+            </div>
+
+            <!-- Gölge -->
+            <div class="setting-row">
+                <span class="setting-label">Gölgeler</span>
+                <label class="toggle-switch">
+                    <input type="checkbox" id="shadows-toggle" checked onchange="toggleSetting('shadows')">
+                    <span class="toggle-slider"></span>
+                </label>
+            </div>
+
+            <!-- Anti-aliasing -->
+            <div class="setting-row">
+                <span class="setting-label">Yumuşatma (AA)</span>
+                <label class="toggle-switch">
+                    <input type="checkbox" id="aa-toggle" checked onchange="toggleSetting('antialiasing')">
+                    <span class="toggle-slider"></span>
+                </label>
+            </div>
+
+            <!-- Partikül efekti -->
+            <div class="setting-row">
+                <span class="setting-label">Partikül Efekti</span>
+                <label class="toggle-switch">
+                    <input type="checkbox" id="particles-toggle" checked onchange="toggleSetting('particles')">
+                    <span class="toggle-slider"></span>
+                </label>
+            </div>
+
+            <!-- Görüş mesafesi -->
+            <div class="setting-row">
+                <span class="setting-label">Görüş Mesafesi</span>
+                <input type="range" min="50" max="200" value="100" step="10" id="draw-distance" oninput="updateSlider('draw-distance')">
+                <span class="setting-value" id="draw-distance-val">%100</span>
+            </div>
+        </div>
+
+        <!-- KONTROL AYARLARI -->
+        <div class="settings-card">
+            <h2>
+                <span class="section-icon">🎮</span>
+                Kontroller
+            </h2>
+
+            <!-- Direksiyon hassasiyeti -->
+            <div class="setting-row">
+                <span class="setting-label">Hassasiyet</span>
+                <input type="range" min="30" max="100" value="65" step="5" id="sensitivity" oninput="updateSlider('sensitivity')">
+                <span class="setting-value" id="sensitivity-val">%65</span>
+            </div>
+
+            <!-- Titreşim (Mobil) -->
+            <div class="setting-row">
+                <span class="setting-label">Titreşim</span>
+                <label class="toggle-switch">
+                    <input type="checkbox" id="vibration-toggle" checked onchange="toggleSetting('vibration')">
+                    <span class="toggle-slider"></span>
+                </label>
+            </div>
+
+            <!-- Tilt kontrol -->
+            <div class="setting-row">
+                <span class="setting-label">Eğme Kontrolü</span>
+                <label class="toggle-switch">
+                    <input type="checkbox" id="tilt-toggle" onchange="toggleSetting('tilt')">
+                    <span class="toggle-slider"></span>
+                </label>
+            </div>
+        </div>
+
+        <!-- SES AYARLARI -->
+        <div class="settings-card">
+            <h2>
+                <span class="section-icon">🔊</span>
+                Ses
+            </h2>
+
+            <!-- Ana ses -->
+            <div class="setting-row">
+                <span class="setting-label">Ana Ses</span>
+                <input type="range" min="0" max="100" value="80" step="5" id="master-volume" oninput="updateSlider('master-volume')">
+                <span class="setting-value" id="master-volume-val">%80</span>
+            </div>
+
+            <!-- Motor sesi -->
+            <div class="setting-row">
+                <span class="setting-label">Motor Sesi</span>
+                <input type="range" min="0" max="100" value="90" step="5" id="engine-volume" oninput="updateSlider('engine-volume')">
+                <span class="setting-value" id="engine-volume-val">%90</span>
+            </div>
+
+            <!-- Egzoz sesi -->
+            <div class="setting-row">
+                <span class="setting-label">Egzoz Sesi</span>
+                <input type="range" min="0" max="100" value="85" step="5" id="exhaust-volume" oninput="updateSlider('exhaust-volume')">
+                <span class="setting-value" id="exhaust-volume-val">%85</span>
+            </div>
+        </div>
+
+        <!-- Kaydet butonu -->
+        <button class="save-btn" onclick="saveSettings()">💾 Ayarları Kaydet</button>
+        <div class="save-message" id="save-message">✅ Ayarlar kaydedildi!</div>
+
+    </div>
+
+    <script>
+        // ============ AYARLAR SİSTEMİ ============
+
+        // Varsayılan ayarlar
+        const defaultSettings = {
+            mode: 'phone',           // phone | pc
+            quality: 'medium',       // low | medium | high
+            resolution: '720p',      // 480p | 720p | 1080p
+            shadows: true,
+            antialiasing: true,
+            particles: true,
+            drawDistance: 100,
+            sensitivity: 65,
+            vibration: true,
+            tilt: false,
+            masterVolume: 80,
+            engineVolume: 90,
+            exhaustVolume: 85
+        };
+
+        // Ayarları localStorage'dan yükle
+        let settings = JSON.parse(localStorage.getItem('motorRiderSettings')) || defaultSettings;
+
+        // ============ SAYFA YÜKLENİNCE ============
+        function loadSettingsToUI() {
+            // Mod
+            if (settings.mode === 'pc') {
+                selectMode('pc');
+            } else {
+                selectMode('phone');
+            }
+
+            // Kalite
+            document.querySelectorAll('#quality-options .option-btn').forEach(btn => {
+                btn.classList.toggle('selected', btn.dataset.quality === settings.quality);
+            });
+
+            // Çözünürlük
+            document.querySelectorAll('#resolution-options .option-btn').forEach(btn => {
+                btn.classList.toggle('selected', btn.dataset.res === settings.resolution);
+            });
+
+            // Toggle'lar
+            document.getElementById('shadows-toggle').checked = settings.shadows;
+            document.getElementById('aa-toggle').checked = settings.antialiasing;
+            document.getElementById('particles-toggle').checked = settings.particles;
+            document.getElementById('vibration-toggle').checked = settings.vibration;
+            document.getElementById('tilt-toggle').checked = settings.tilt;
+
+            // Slider'lar
+            document.getElementById('draw-distance').value = settings.drawDistance;
+            document.getElementById('draw-distance-val').textContent = '%' + settings.drawDistance;
+
+            document.getElementById('sensitivity').value = settings.sensitivity;
+            document.getElementById('sensitivity-val').textContent = '%' + settings.sensitivity;
+
+            document.getElementById('master-volume').value = settings.masterVolume;
+            document.getElementById('master-volume-val').textContent = '%' + settings.masterVolume;
+
+            document.getElementById('engine-volume').value = settings.engineVolume;
+            document.getElementById('engine-volume-val').textContent = '%' + settings.engineVolume;
+
+            document.getElementById('exhaust-volume').value = settings.exhaustVolume;
+            document.getElementById('exhaust-volume-val').textContent = '%' + settings.exhaustVolume;
+        }
+
+        // ============ MOD SEÇİMİ ============
+        function selectMode(mode) {
+            settings.mode = mode;
+
+            document.getElementById('mode-phone').classList.toggle('active', mode === 'phone');
+            document.getElementById('mode-pc').classList.toggle('active', mode === 'pc');
+
+            // PC modu uyarısı
+            const pcNotice = document.getElementById('pc-notice');
+            pcNotice.classList.toggle('show', mode === 'pc');
+
+            console.log('🔄 Mod:', mode === 'phone' ? '📱 Telefon' : '🖥️ Bilgisayar');
+        }
+
+        // ============ KALİTE SEÇİMİ ============
+        function setQuality(quality) {
+            settings.quality = quality;
+            document.querySelectorAll('#quality-options .option-btn').forEach(btn => {
+                btn.classList.toggle('selected', btn.dataset.quality === quality);
+            });
+            console.log('🎨 Kalite:', quality.toUpperCase());
+        }
+
+        // ============ ÇÖZÜNÜRLÜK SEÇİMİ ============
+        function setResolution(res) {
+            settings.resolution = res;
+            document.querySelectorAll('#resolution-options .option-btn').forEach(btn => {
+                btn.classList.toggle('selected', btn.dataset.res === res);
+            });
+            console.log('📺 Çözünürlük:', res);
+        }
+
+        // ============ TOGGLE ============
+        function toggleSetting(name) {
+            const toggleMap = {
+                'shadows': 'shadows-toggle',
+                'antialiasing': 'aa-toggle',
+                'particles': 'particles-toggle',
+                'vibration': 'vibration-toggle',
+                'tilt': 'tilt-toggle'
+            };
+
+            settings[name] = document.getElementById(toggleMap[name]).checked;
+            console.log('🔘', name, ':', settings[name] ? 'AÇIK' : 'KAPALI');
+        }
+
+        // ============ SLIDER GÜNCELLE ============
+        function updateSlider(id) {
+            const value = parseInt(document.getElementById(id).value);
+            const settingMap = {
+                'draw-distance': 'drawDistance',
+                'sensitivity': 'sensitivity',
+                'master-volume': 'masterVolume',
+                'engine-volume': 'engineVolume',
+                'exhaust-volume': 'exhaustVolume'
+            };
+
+            const settingKey = settingMap[id];
+            if (settingKey) {
+                settings[settingKey] = value;
+                document.getElementById(id + '-val').textContent = '%' + value;
+            }
+        }
+
+        // ============ KAYDET ============
+        function saveSettings() {
+            localStorage.setItem('motorRiderSettings', JSON.stringify(settings));
+
+            const msg = document.getElementById('save-message');
+            msg.classList.add('show');
+            setTimeout(() => {
+                msg.classList.remove('show');
+            }, 2000);
+
+            console.log('💾 Ayarlar kaydedildi!');
+            console.log(settings);
+        }
+
+        // Sayfa yüklendiğinde ayarları göster
+        loadSettingsToUI();
+        console.log('⚙️ Ayarlar sayfası hazır!');
+        console.log('📱 Mevcut mod:', settings.mode === 'phone' ? 'Telefon' : 'Bilgisayar');
+    </script>
 </body>
 </html>
