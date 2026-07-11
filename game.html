@@ -138,6 +138,10 @@
         const settings = JSON.parse(localStorage.getItem('motorRiderSettings')) || { mode: 'phone', sensitivity: 65 };
         if (settings.mode === 'pc') document.body.classList.add('pc-mode');
 
+        // 🎨 GARAJ RENGİ
+        const bikeColor = localStorage.getItem('motorRiderBikeColor') || '#ff3300';
+        console.log('🎨 Motor rengi:', bikeColor);
+
         // ============ THREE.JS ============
         const canvas = document.getElementById('game-canvas');
         const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
@@ -166,9 +170,9 @@
         sun.shadow.camera.far = 150;
         scene.add(sun);
 
-        // ============ MOTOR ============
+        // ============ MOTOR (GARAJ RENGİ İLE) ============
         const bikeGroup = new THREE.Group();
-        const bodyMat = new THREE.MeshStandardMaterial({ color: '#ff3300', roughness: 0.2, metalness: 0.8 });
+        const bodyMat = new THREE.MeshStandardMaterial({ color: bikeColor, roughness: 0.2, metalness: 0.8 });
         const darkMat = new THREE.MeshStandardMaterial({ color: '#1a1a1a', roughness: 0.3, metalness: 0.7 });
         const chromeMat = new THREE.MeshStandardMaterial({ color: '#ccc', roughness: 0.1, metalness: 1 });
         const tireMat = new THREE.MeshStandardMaterial({ color: '#111', roughness: 0.9 });
@@ -268,39 +272,33 @@
         function createSegment(zStart) {
             const group = new THREE.Group();
 
-            // Yol
             const road = new THREE.Mesh(new THREE.PlaneGeometry(8, segLen), roadMat);
             road.rotation.x = -Math.PI / 2; road.position.set(0, 0.01, segLen / 2);
             road.receiveShadow = true; group.add(road);
 
-            // Orta çizgi (kesik)
             for (let z = 0; z < segLen; z += 4) {
                 const dash = new THREE.Mesh(new THREE.PlaneGeometry(0.3, 2.5),
                     new THREE.MeshStandardMaterial({ color: '#fff', roughness: 0.3, emissive: '#fff', emissiveIntensity: 0.2 }));
                 dash.rotation.x = -Math.PI / 2; dash.position.set(0, 0.02, z + 1.5); group.add(dash);
             }
 
-            // Kenar çizgileri
             for (let s = -1; s <= 1; s += 2) {
                 const edge = new THREE.Mesh(new THREE.PlaneGeometry(0.2, segLen),
                     new THREE.MeshStandardMaterial({ color: '#fff', roughness: 0.3 }));
                 edge.rotation.x = -Math.PI / 2; edge.position.set(s * 3.5, 0.02, segLen / 2); group.add(edge);
             }
 
-            // Kaldırım
             for (let s = -1; s <= 1; s += 2) {
                 const sw = new THREE.Mesh(new THREE.BoxGeometry(1.5, 0.2, segLen), sidewalkMat);
                 sw.position.set(s * 4.7, -0.05, segLen / 2); sw.receiveShadow = true; group.add(sw);
             }
 
-            // Çimen
             for (let s = -1; s <= 1; s += 2) {
                 const grass = new THREE.Mesh(new THREE.PlaneGeometry(8, segLen), grassMat);
                 grass.rotation.x = -Math.PI / 2; grass.position.set(s * 10, -0.02, segLen / 2);
                 grass.receiveShadow = true; group.add(grass);
             }
 
-            // Ağaçlar
             for (let s = -1; s <= 1; s += 2) {
                 const treeCount = 2 + Math.floor(Math.random() * 3);
                 for (let t = 0; t < treeCount; t++) {
@@ -309,7 +307,6 @@
                 }
             }
 
-            // Binalar (sadece bazı segmentlerde)
             if (Math.random() > 0.3) {
                 const mats = [buildingMat1, buildingMat2, buildingMat3];
                 for (let s = -1; s <= 1; s += 2) {
@@ -324,7 +321,6 @@
                 }
             }
 
-            // Lamba direkleri
             for (let s = -1; s <= 1; s += 2) {
                 if (Math.random() > 0.3) {
                     const lamp = createLampPost(s * 5.5, Math.random() * segLen);
@@ -457,19 +453,16 @@
         const gearRatios = [0, 30, 55, 85, 120, 155, 200];
 
         function updatePhysics(dt) {
-            // Gaz
             if (input.gas && bike.speed < bike.maxSpeed) {
                 bike.speed += 40 * (settings.sensitivity / 100) * dt;
             }
-            // Fren / Geri vites
             if (input.brake) {
                 if (bike.speed > 0) {
                     bike.speed -= 70 * dt;
                 } else if (bike.speed <= 0 && bike.speed > -30) {
-                    bike.speed -= 30 * dt; // Geri gitme
+                    bike.speed -= 30 * dt;
                 }
             }
-            // Sürtünme
             if (!input.gas && !input.brake) {
                 if (bike.speed > 0) bike.speed -= 0.8 * dt;
                 else if (bike.speed < 0) bike.speed += 0.8 * dt;
@@ -478,7 +471,6 @@
             bike.speed = Math.max(-30, Math.min(bike.maxSpeed, bike.speed));
             if (Math.abs(bike.speed) < 0.1) bike.speed = 0;
 
-            // Vites (sadece ileri)
             if (bike.speed < 1) bike.gear = 0;
             else {
                 for (let g = 6; g >= 1; g--) {
@@ -487,7 +479,6 @@
             }
             if (bike.speed < 0) bike.gear = 0;
 
-            // RPM
             const absSpeed = Math.abs(bike.speed);
             if (bike.gear === 0) bike.rpm = input.gas ? 25 : 5;
             else {
@@ -496,7 +487,6 @@
             }
             bike.rpm = Math.max(0, Math.min(100, bike.rpm));
 
-            // Wheelie
             if (input.wheelie && bike.speed > 20) {
                 bike.wheelieAngle += 45 * dt;
             } else {
@@ -504,7 +494,7 @@
             }
             bike.wheelieAngle = Math.max(0, Math.min(45, bike.wheelieAngle));
 
-            // Direksiyon + Yatma
+            // 🔧 SAĞ-SOL: BIRAKINCA ORTAYA DÖNMEZ!
             if (input.steerLeft) {
                 bike.lateralPos -= 6 * dt;
                 bike.leanAngle = Math.max(-25, bike.leanAngle - 50 * dt);
@@ -513,11 +503,10 @@
                 bike.leanAngle = Math.min(25, bike.leanAngle + 50 * dt);
             } else {
                 bike.leanAngle *= 0.9;
+                // lateralPos *= 0.92; ← BU SATIR SİLİNDİ! Artık ortaya dönmez!
             }
-            bike.lateralPos *= 0.92;
             bike.lateralPos = Math.max(-3.5, Math.min(3.5, bike.lateralPos));
 
-            // Mesafe & Para (mutlak değer)
             const dist = (Math.abs(bike.speed) / 3.6) * dt;
             totalDist += dist;
             saveCounter += dist;
@@ -525,10 +514,8 @@
 
             if (saveCounter > 50) { saveProgress(); saveCounter = 0; }
 
-            // Ses
             updateEngineSound(Math.abs(bike.speed), bike.rpm);
 
-            // Yavaşlarken egzoz patlaması
             if (bike.rpm > 70 && Math.abs(bike.speed) > 50 && Math.random() < dt * 2) {
                 playExhaustPop();
             }
@@ -554,7 +541,6 @@
             updatePhysics(dt);
             updateHUD();
 
-            // Yol hareketi
             const moveSpeed = bike.speed * dt * 0.5;
             segments.forEach((seg, i) => {
                 seg.position.z += moveSpeed;
@@ -566,26 +552,24 @@
                 }
             });
 
-            // Motor pozisyonu
             bikeGroup.position.x = bike.lateralPos;
             bikeGroup.position.z = 0;
             bikeGroup.rotation.x = -bike.wheelieAngle * (Math.PI / 180);
             bikeGroup.rotation.z = -bike.leanAngle * (Math.PI / 180);
             bikeGroup.position.y = bike.wheelieAngle * 0.015;
 
-            // Tekerlekler
             const wheelRot = bike.speed * dt * 0.5;
             frontWheel.children[0].rotation.x += wheelRot;
             rearWheel.children[0].rotation.x += wheelRot;
 
-            // Kamera
+            // 📷 KAMERA DÜZELTİLDİ
             const targetCamX = bike.lateralPos * 0.4;
             const targetCamY = 3.5 + Math.abs(bike.speed) * 0.008;
             const targetCamZ = -5 - Math.abs(bike.speed) * 0.02;
             camera.position.x += (targetCamX - camera.position.x) * 3 * dt;
             camera.position.y += (targetCamY - camera.position.y) * 3 * dt;
             camera.position.z += (targetCamZ - camera.position.z) * 3 * dt;
-            camera.lookAt(bike.lateralPos * 0.6, 1.2 + bike.wheelieAngle * 0.02, 8);
+            camera.lookAt(bike.lateralPos * 0.6, 1.2 + bike.wheelieAngle * 0.02, 10);
 
             renderer.render(scene, camera);
         }
@@ -598,13 +582,12 @@
 
         window.addEventListener('beforeunload', () => { saveProgress(); stopEngineSound(); });
 
-        // İlk tıklamada sesi başlat
         document.addEventListener('click', () => { initAudio(); }, { once: true });
         document.addEventListener('touchstart', () => { initAudio(); }, { once: true });
 
         updateHUD();
         animate();
-        console.log('🏍️ Sürüş hazır! Geri vites: R, Korna: H tuşu / 📢 buton');
+        console.log('🏍️ Hazır! Renk:', bikeColor, '| Sağ-sol sabit | Kamera düzeltildi');
     </script>
 </body>
 </html>
