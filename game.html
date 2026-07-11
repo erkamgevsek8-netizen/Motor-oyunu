@@ -44,14 +44,12 @@
         throw new Error('Three yok');
     }
 
-    // AYARLAR
     var mode = 'phone';
     var bikeColor = '#ff3300';
     try { var s = JSON.parse(localStorage.getItem('motorRiderSettings')); if (s && s.mode) mode = s.mode; } catch(e) {}
     try { var c = localStorage.getItem('motorRiderBikeColor'); if (c) bikeColor = c; } catch(e) {}
     if (mode === 'pc') document.body.classList.add('pc-mode');
 
-    // SAHNE
     var scene = new THREE.Scene();
     scene.background = new THREE.Color(0x87CEEB);
     scene.fog = new THREE.Fog(0x87CEEB, 40, 100);
@@ -90,7 +88,7 @@
 
     bike.add(new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.04, 0.6, 6), new THREE.MeshStandardMaterial({ color: 0xcccccc, roughness: 0.1, metalness: 1 })).rotation.set(0,0,Math.PI/2).position.set(0, 1.2, 0.8));
 
-    // Egzoz
+    // Egzoz (sessiz)
     var ex = new THREE.Group();
     ex.add(new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.05, 0.8, 6), new THREE.MeshStandardMaterial({ color: 0xcccccc, roughness: 0.1, metalness: 1 })).position.set(0.18, 0.2, -0.7).rotation.set(-0.2,0,0));
     ex.add(new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.06, 0.1, 6), new THREE.MeshStandardMaterial({ color: 0xff4400, roughness: 0.1, metalness: 1, emissive: 0x220000, emissiveIntensity: 0.3 })).position.set(0.18, 0.08, -1.1));
@@ -149,21 +147,9 @@
         roadGroup.add(g);
     }
 
-    // SES
+    // SES (sadece korna)
     var audioCtx = null;
     function initAudio() { if (!audioCtx) try { audioCtx = new (window.AudioContext || window.webkitAudioContext)(); } catch(e) {} }
-
-    function playExhaustPop() {
-        initAudio(); if (!audioCtx) return;
-        try {
-            var now = audioCtx.currentTime, sr = audioCtx.sampleRate;
-            var buf = audioCtx.createBuffer(1, 0.35*sr, sr), d = buf.getChannelData(0);
-            for (var i=0; i<d.length; i++) d[i] = ((Math.random()*2-1)*0.4 + Math.sin(2*Math.PI*55*(i/sr))*0.6) * Math.exp(-i/sr*10) * 0.6;
-            var src = audioCtx.createBufferSource(); src.buffer = buf;
-            var g = audioCtx.createGain(); g.gain.setValueAtTime(0.5, now); g.gain.exponentialRampToValueAtTime(0.01, now+0.35);
-            src.connect(g); g.connect(audioCtx.destination); src.start();
-        } catch(e) {}
-    }
 
     function playHorn() {
         initAudio(); if (!audioCtx) return;
@@ -180,13 +166,12 @@
     var speed = 0, gear = 0, rpm = 0;
     var money = parseInt(localStorage.getItem('motorRiderMoney')) || 0;
     var dist = parseFloat(localStorage.getItem('motorRiderDistance')) || 0;
-    var lastExhaust = Date.now();
     var lateralPos = 0, leanAngle = 0, wheelieAngle = 0;
     var gasOn = false, brakeOn = false, wheelieOn = false;
     var keys = {};
     var gears = [0, 30, 55, 85, 120, 155, 200];
 
-    document.getElementById('gas-btn').addEventListener('touchstart', function(e) { e.preventDefault(); gasOn = true; initAudio(); });
+    document.getElementById('gas-btn').addEventListener('touchstart', function(e) { e.preventDefault(); gasOn = true; });
     document.getElementById('gas-btn').addEventListener('touchend', function() { gasOn = false; });
     document.getElementById('brake-btn').addEventListener('touchstart', function(e) { e.preventDefault(); brakeOn = true; });
     document.getElementById('brake-btn').addEventListener('touchend', function() { brakeOn = false; });
@@ -194,7 +179,7 @@
     document.getElementById('wheelie-btn').addEventListener('touchend', function() { wheelieOn = false; });
     document.getElementById('horn-btn').addEventListener('touchstart', function(e) { e.preventDefault(); playHorn(); });
 
-    window.addEventListener('keydown', function(e) { keys[e.key.toLowerCase()] = true; if (keys['h']) playHorn(); initAudio(); });
+    window.addEventListener('keydown', function(e) { keys[e.key.toLowerCase()] = true; if (keys['h']) playHorn(); });
     window.addEventListener('keyup', function(e) { keys[e.key.toLowerCase()] = false; });
 
     function getInput() {
@@ -215,38 +200,31 @@
 
         var input = getInput();
 
-        // Gaz/Fren
         if (input.gas) { if (speed < 0) speed += 50*dt; else speed += 40*dt; }
         if (input.brake) { if (speed > 0) speed -= 60*dt; else if (speed > -30) speed -= 25*dt; }
         if (!input.gas && !input.brake) { if (speed > 0) speed -= 0.8*dt; else if (speed < 0) speed += 0.8*dt; }
         speed = Math.max(-30, Math.min(200, speed));
         if (Math.abs(speed) < 0.2) speed = 0;
 
-        // Vites
         if (speed <= 0) gear = 0;
         else for (var g=6; g>=1; g--) if (speed >= gears[g-1]) { gear = g; break; }
 
-        // RPM
         var absSpd = Math.abs(speed);
         rpm = gear === 0 ? (input.gas ? 0.25 : 0.05) : 0.15 + ((absSpd - gears[gear-1]) / (gears[gear] - gears[gear-1])) * 0.85;
         rpm = Math.max(0, Math.min(1, rpm));
 
-        // Ön kaldırma
         if (input.wheelie && speed > 20) wheelieAngle += 45*dt;
         else wheelieAngle *= 0.85;
         wheelieAngle = Math.max(0, Math.min(45, wheelieAngle));
 
-        // Sağ/Sol
         if (input.left) { lateralPos -= 5*dt; leanAngle = Math.max(-25, leanAngle-45*dt); }
         else if (input.right) { lateralPos += 5*dt; leanAngle = Math.min(25, leanAngle+45*dt); }
         else { leanAngle *= 0.85; }
         lateralPos = Math.max(-3.5, Math.min(3.5, lateralPos));
 
-        // Mesafe/Para
         var d = (Math.abs(speed)/3.6)*dt;
         dist += d; money += d*0.05;
 
-        // HUD
         document.getElementById('speed').textContent = Math.floor(Math.abs(speed));
         document.getElementById('gear').textContent = speed < -0.5 ? 'R' : (gear===0?'N':gear);
         document.getElementById('money').textContent = '🪙 ' + Math.floor(money).toLocaleString('tr-TR');
@@ -254,14 +232,9 @@
         rf.style.width = (rpm*100) + '%';
         rf.style.background = rpm > 0.9 ? '#ff0000' : rpm > 0.7 ? '#ffd700' : '#00ff88';
 
-        // Egzoz sesi + alev
-        if (rpm > 0.5 && Math.abs(speed) > 30 && Date.now() - lastExhaust > 350) {
-            playExhaustPop();
-            lastExhaust = Date.now();
-            burstFlame();
-        }
+        // Alev (sessiz)
+        if (rpm > 0.7 && Math.abs(speed) > 40 && Math.random() < dt * 2) burstFlame();
 
-        // Yol
         var move = speed * dt * 0.5;
         for (var i=0; i<segments.length; i++) {
             segments[i].position.z += move;
@@ -269,18 +242,15 @@
             if (segments[i].position.z < -COUNT*SEG) segments[i].position.z += COUNT*SEG;
         }
 
-        // Motor pozisyon
         bike.position.x = lateralPos;
         bike.rotation.x = -wheelieAngle * (Math.PI/180);
         bike.rotation.z = -leanAngle * (Math.PI/180);
         bike.position.y = wheelieAngle * 0.015;
 
-        // Tekerlek
         var wr = speed * dt * 0.5;
         ft.rotation.x += wr;
         rt.rotation.x += wr;
 
-        // Kamera
         camera.position.z = -7 - Math.abs(speed)*0.02;
         camera.position.y = 4 + Math.abs(speed)*0.01;
         camera.lookAt(lateralPos*0.3, 1, 10);
