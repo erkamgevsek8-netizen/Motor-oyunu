@@ -122,7 +122,6 @@
     <button class="wheelie-btn" id="btn-wheelie">⬆️</button>
     <button class="horn-btn" id="btn-horn">📢</button>
 
-    <!-- AYNI CDN - ÇALIŞAN SÜRÜM -->
     <script src="https://cdn.jsdelivr.net/npm/three@0.150.0/build/three.min.js"></script>
 
     <script>
@@ -133,7 +132,7 @@
             throw new Error('Three.js yok');
         }
 
-        // ============ AYARLAR ============
+        // Ayarlar
         let settings;
         try { settings = JSON.parse(localStorage.getItem('motorRiderSettings')) || { mode: 'phone', sensitivity: 65, drawDistance: 100 }; }
         catch(e) { settings = { mode: 'phone', sensitivity: 65, drawDistance: 100 }; }
@@ -149,17 +148,11 @@
         try { bikeColor = localStorage.getItem('motorRiderBikeColor') || '#ff3300'; }
         catch(e) { bikeColor = '#ff3300'; }
 
-        let equippedMods;
-        try { equippedMods = JSON.parse(localStorage.getItem('motorRiderEquippedMods')) || { egzoz: 'exhaust_stock' }; }
-        catch(e) { equippedMods = { egzoz: 'exhaust_stock' }; }
-        const exhaustType = equippedMods['egzoz'] || 'exhaust_stock';
-
-        // ============ THREE.JS ============
+        // THREE.JS
         const canvas = document.getElementById('game-canvas');
-        const renderer = new THREE.WebGLRenderer({ canvas: canvas, antialias: true, powerPreference: "high-performance" });
+        const renderer = new THREE.WebGLRenderer({ canvas: canvas, antialias: true });
         renderer.setSize(window.innerWidth, window.innerHeight);
         renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-        renderer.shadowMap.enabled = true;
 
         const scene = new THREE.Scene();
         scene.background = new THREE.Color('#87CEEB');
@@ -169,99 +162,13 @@
         const camera = new THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight, 0.3, fogDist + 30);
         let cameraMode = 1;
         camera.position.set(0, 3.5, -6);
-        camera.lookAt(0, 1, 10);
 
         scene.add(new THREE.AmbientLight('#ffffff', 0.7));
         const sun = new THREE.DirectionalLight('#fff8e7', 2);
-        sun.position.set(30, 40, 20); sun.castShadow = true;
-        sun.shadow.mapSize.width = 1024; sun.shadow.mapSize.height = 1024;
+        sun.position.set(30, 40, 20);
         scene.add(sun);
 
-        // ============ SES ============
-        let audioCtx = null;
-        function initAudio() { if (!audioCtx) try { audioCtx = new (window.AudioContext || window.webkitAudioContext)(); } catch(e) {} }
-
-        function playStockExhaust() {
-            if (!audioCtx) return;
-            try {
-                const now = audioCtx.currentTime;
-                for (let i = 0; i < 3; i++) {
-                    const osc = audioCtx.createOscillator();
-                    const gain = audioCtx.createGain();
-                    osc.type = 'triangle';
-                    osc.frequency.value = 50 + i * 15;
-                    gain.gain.setValueAtTime(0.06, now + i * 0.12);
-                    gain.gain.exponentialRampToValueAtTime(0.001, now + i * 0.12 + 0.1);
-                    osc.connect(gain); gain.connect(audioCtx.destination);
-                    osc.start(now + i * 0.12); osc.stop(now + i * 0.12 + 0.1);
-                }
-            } catch(e) {}
-        }
-
-        function playSportExhaust() {
-            if (!audioCtx) return;
-            try {
-                const now = audioCtx.currentTime;
-                const sr = audioCtx.sampleRate;
-                const buf = audioCtx.createBuffer(1, 0.5 * sr, sr);
-                const d = buf.getChannelData(0);
-                for (let i = 0; i < d.length; i++) {
-                    d[i] = ((Math.random() * 2 - 1) * 0.5 + Math.sin(2 * Math.PI * 70 * (i/sr)) * 0.5) * Math.exp(-i/sr * 10) * 0.8;
-                }
-                const src = audioCtx.createBufferSource(); src.buffer = buf;
-                const g = audioCtx.createGain();
-                g.gain.setValueAtTime(0.7, now);
-                g.gain.exponentialRampToValueAtTime(0.01, now + 0.5);
-                src.connect(g); g.connect(audioCtx.destination); src.start();
-            } catch(e) {}
-        }
-
-        function playRaceExhaust() {
-            if (!audioCtx) return;
-            try {
-                const now = audioCtx.currentTime;
-                const sr = audioCtx.sampleRate;
-                const buf = audioCtx.createBuffer(1, 0.3 * sr, sr);
-                const d = buf.getChannelData(0);
-                for (let i = 0; i < d.length; i++) {
-                    d[i] = (Math.random() * 2 - 1) * Math.exp(-i/sr * 15) * 0.6;
-                }
-                const src = audioCtx.createBufferSource(); src.buffer = buf;
-                const g = audioCtx.createGain();
-                g.gain.setValueAtTime(0.5, now);
-                g.gain.exponentialRampToValueAtTime(0.01, now + 0.3);
-                src.connect(g); g.connect(audioCtx.destination); src.start();
-
-                const osc = audioCtx.createOscillator();
-                const g2 = audioCtx.createGain();
-                osc.type = 'square'; osc.frequency.value = 200;
-                g2.gain.setValueAtTime(0.15, now);
-                g2.gain.exponentialRampToValueAtTime(0.01, now + 0.2);
-                osc.connect(g2); g2.connect(audioCtx.destination);
-                osc.start(now); osc.stop(now + 0.2);
-            } catch(e) {}
-        }
-
-        function playExhaustSound() {
-            if (exhaustType === 'exhaust_sport') playSportExhaust();
-            else if (exhaustType === 'exhaust_race') playRaceExhaust();
-            else playStockExhaust();
-        }
-
-        function playHorn() {
-            if (!audioCtx) return;
-            try {
-                const osc = audioCtx.createOscillator();
-                const gain = audioCtx.createGain();
-                osc.type = 'square'; osc.frequency.value = 440;
-                gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
-                gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.4);
-                osc.connect(gain); gain.connect(audioCtx.destination);
-                osc.start(); osc.stop(audioCtx.currentTime + 0.4);
-            } catch(e) {}
-        }
-
-        // ============ MOTOR ============
+        // MOTOR
         const bikeGroup = new THREE.Group();
         const chromeMat = new THREE.MeshStandardMaterial({ color: '#cccccc', roughness: 0.1, metalness: 1.0 });
         const tireMat = new THREE.MeshStandardMaterial({ color: '#111111', roughness: 0.9 });
@@ -269,8 +176,7 @@
         const darkMat = new THREE.MeshStandardMaterial({ color: '#1a1a1a', roughness: 0.3, metalness: 0.7 });
         const bodyMat = new THREE.MeshStandardMaterial({ color: bikeColor, roughness: 0.15, metalness: 0.8 });
 
-        const body = new THREE.Mesh(new THREE.BoxGeometry(0.35, 0.45, 1.7), bodyMat);
-        body.position.y = 0.65; body.castShadow = true; bikeGroup.add(body);
+        bikeGroup.add(new THREE.Mesh(new THREE.BoxGeometry(0.35, 0.45, 1.7), bodyMat).position.set(0, 0.65, 0));
         bikeGroup.add(new THREE.Mesh(new THREE.BoxGeometry(0.35, 0.4, 0.5), darkMat).position.set(0, 0.5, -0.05));
         const tank = new THREE.Mesh(new THREE.CylinderGeometry(0.2, 0.23, 0.65, 12), bodyMat);
         tank.rotation.x = Math.PI / 2; tank.position.set(0, 0.9, 0.25); bikeGroup.add(tank);
@@ -293,61 +199,16 @@
 
         bikeGroup.add(new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.04, 0.65, 8), chromeMat).rotation.set(0,0,Math.PI/2).position.set(0, 1.2, 0.8));
 
-        // EGZOZ
+        // Egzoz
         const exhaustGroup = new THREE.Group();
-        if (exhaustType === 'exhaust_sport') {
-            const dm = new THREE.MeshStandardMaterial({ color: '#333333', roughness: 0.2, metalness: 0.9 });
-            exhaustGroup.add(new THREE.Mesh(new THREE.CylinderGeometry(0.05, 0.06, 0.9, 8), dm).position.set(0.25, 0.25, -0.5).rotation.set(-0.15,0,0));
-            exhaustGroup.add(new THREE.Mesh(new THREE.BoxGeometry(0.16, 0.1, 0.5), dm).position.set(0.25, 0.06, -1.0));
-            exhaustGroup.add(new THREE.Mesh(new THREE.CylinderGeometry(0.06, 0.07, 0.12, 8),
-                new THREE.MeshStandardMaterial({ color: '#ffd700', roughness: 0.1, metalness: 1 })).position.set(0.25, 0.06, -1.3));
-        } else if (exhaustType === 'exhaust_race') {
-            const cm = new THREE.MeshStandardMaterial({ color: '#1a1a1a', roughness: 0.3, metalness: 0.4 });
-            exhaustGroup.add(new THREE.Mesh(new THREE.CylinderGeometry(0.05, 0.06, 0.8, 8), cm).position.set(0.25, 0.25, -0.45).rotation.set(-0.1,0,0));
-            exhaustGroup.add(new THREE.Mesh(new THREE.BoxGeometry(0.18, 0.12, 0.4), cm).position.set(0.25, 0.06, -0.9));
-            for (let s = -1; s <= 1; s += 2)
-                exhaustGroup.add(new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.05, 0.1, 8),
-                    new THREE.MeshStandardMaterial({ color: '#ff4400', roughness: 0.1, metalness: 1 })).position.set(0.25 + s * 0.05, 0.06, -1.15));
-        } else {
-            exhaustGroup.add(new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.05, 0.9, 8), chromeMat).position.set(0.2, 0.25, -0.5).rotation.set(-0.2,0,0));
-            exhaustGroup.add(new THREE.Mesh(new THREE.BoxGeometry(0.14, 0.09, 0.45), chromeMat).position.set(0.2, 0.06, -1.0));
-            exhaustGroup.add(new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.05, 0.08, 8), bodyMat).position.set(0.2, 0.06, -1.25));
-        }
+        exhaustGroup.add(new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.05, 0.9, 8), chromeMat).position.set(0.2, 0.25, -0.5).rotation.set(-0.2,0,0));
+        exhaustGroup.add(new THREE.Mesh(new THREE.BoxGeometry(0.14, 0.09, 0.45), chromeMat).position.set(0.2, 0.06, -1.0));
+        exhaustGroup.add(new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.05, 0.08, 8), bodyMat).position.set(0.2, 0.06, -1.25));
         bikeGroup.add(exhaustGroup);
-
-        // Alev
-        const flameGroup = new THREE.Group(); flameGroup.visible = false;
-        bikeGroup.add(flameGroup);
-        let flameParticles = [];
-
-        function burstFlame() {
-            while (flameGroup.children.length > 0) flameGroup.remove(flameGroup.children[0]);
-            flameParticles = [];
-            const count = exhaustType === 'exhaust_race' ? 35 : (exhaustType === 'exhaust_sport' ? 25 : 0);
-            for (let i = 0; i < count; i++) {
-                const fl = new THREE.Mesh(new THREE.SphereGeometry(Math.random() * 0.06 + 0.02, 3, 3),
-                    new THREE.MeshBasicMaterial({ color: Math.random() > 0.5 ? '#ff4400' : '#ffaa00', transparent: true }));
-                fl.position.set(0.2 + (Math.random() - 0.5) * 0.15, 0.06, -1.3);
-                flameParticles.push({ mesh: fl, vel: new THREE.Vector3((Math.random() - 0.5) * 2, Math.random() * 3 + 0.5, -Math.random() * 5 - 2), life: 0.4 + Math.random() * 0.4, age: 0 });
-                flameGroup.add(fl);
-            }
-            if (count > 0) flameGroup.visible = true;
-        }
-
-        function updateFlames(dt) {
-            for (let i = flameParticles.length - 1; i >= 0; i--) {
-                const p = flameParticles[i];
-                p.age += dt;
-                p.mesh.position.add(p.vel.clone().multiplyScalar(dt));
-                p.mesh.material.opacity = 1 - (p.age / p.life);
-                if (p.age >= p.life) { flameGroup.remove(p.mesh); flameParticles.splice(i, 1); }
-            }
-            if (flameParticles.length === 0) flameGroup.visible = false;
-        }
 
         scene.add(bikeGroup);
 
-        // ============ YOL (GENİŞ: 12m) ============
+        // YOL (GENİŞ: 12m)
         const ROAD_WIDTH = 12;
         const roadGroup = new THREE.Group(); scene.add(roadGroup);
         const roadMat = new THREE.MeshStandardMaterial({ color: '#444444', roughness: 0.8 });
@@ -359,7 +220,7 @@
         function createSegment(zPos) {
             const g = new THREE.Group();
             const road = new THREE.Mesh(new THREE.PlaneGeometry(ROAD_WIDTH, segLen), roadMat);
-            road.rotation.x = -Math.PI / 2; road.position.set(0, 0.01, segLen / 2); road.receiveShadow = true; g.add(road);
+            road.rotation.x = -Math.PI / 2; road.position.set(0, 0.01, segLen / 2); g.add(road);
 
             for (let z = 0; z < segLen; z += 5) {
                 const dash = new THREE.Mesh(new THREE.PlaneGeometry(0.3, 3), new THREE.MeshStandardMaterial({ color: '#ffffff' }));
@@ -369,7 +230,7 @@
                 const edge = new THREE.Mesh(new THREE.PlaneGeometry(0.3, segLen), new THREE.MeshStandardMaterial({ color: '#ffffff' }));
                 edge.rotation.x = -Math.PI / 2; edge.position.set(s * (ROAD_WIDTH/2 - 0.15), 0.02, segLen / 2); g.add(edge);
                 const grass = new THREE.Mesh(new THREE.PlaneGeometry(15, segLen), grassMat);
-                grass.rotation.x = -Math.PI / 2; grass.position.set(s * (ROAD_WIDTH/2 + 7), -0.02, segLen / 2); grass.receiveShadow = true; g.add(grass);
+                grass.rotation.x = -Math.PI / 2; grass.position.set(s * (ROAD_WIDTH/2 + 7), -0.02, segLen / 2); g.add(grass);
 
                 for (let t = 0; t < 3; t++) {
                     const tree = new THREE.Group();
@@ -383,52 +244,14 @@
         }
 
         for (let i = 0; i < totalSegs; i++) {
-            const seg = createSegment(-i * segLen);
-            segments.push(seg); roadGroup.add(seg);
+            segments.push(createSegment(-i * segLen));
+            roadGroup.add(segments[i]);
         }
 
-        // ============ ARABALAR (TRAFİK) ============
-        const trafficCars = [];
-        const carColors = ['#ff3333', '#3366ff', '#33cc33', '#ffcc00', '#ff6600', '#9933ff', '#ffffff', '#222222'];
-        const carSpeeds = [20, 30, 40, 50, 60, 80, 100, 130];
-        const lanes = [-4.5, -1.5, 1.5, 4.5];
-
-        function createCar(x, z, speed) {
-            const car = new THREE.Group();
-            const color = carColors[Math.floor(Math.random() * carColors.length)];
-            const carMat = new THREE.MeshStandardMaterial({ color: color, roughness: 0.2, metalness: 0.7 });
-            car.add(new THREE.Mesh(new THREE.BoxGeometry(1.8, 0.6, 4), carMat).position.set(0, 0.5, 0));
-            car.add(new THREE.Mesh(new THREE.BoxGeometry(1.6, 0.4, 2), 
-                new THREE.MeshStandardMaterial({ color: '#88ccff', roughness: 0.1, transparent: true, opacity: 0.7 })).position.set(0, 0.9, -0.2));
-            const wheelGeom = new THREE.CylinderGeometry(0.3, 0.3, 0.2, 8);
-            const wheelMat = new THREE.MeshStandardMaterial({ color: '#111', roughness: 0.9 });
-            for (let wx = -1; wx <= 1; wx += 2) {
-                for (let wz = -1; wz <= 1; wz += 2) {
-                    const wheel = new THREE.Mesh(wheelGeom, wheelMat);
-                    wheel.rotation.z = Math.PI / 2;
-                    wheel.position.set(wx * 0.8, 0.3, wz * 1.3);
-                    car.add(wheel);
-                }
-            }
-            car.position.set(x, 0.1, z);
-            car.userData = { speed: speed };
-            scene.add(car);
-            return car;
-        }
-
-        // Başlangıç trafiği
-        for (let i = 0; i < 8; i++) {
-            const lane = lanes[Math.floor(Math.random() * lanes.length)];
-            const spd = carSpeeds[Math.floor(Math.random() * carSpeeds.length)];
-            const z = -Math.random() * 60;
-            trafficCars.push(createCar(lane, z, spd));
-        }
-
-        // ============ PARA ============
+        // PARA
         let money = parseInt(localStorage.getItem('motorRiderMoney')) || 0;
         let totalDist = parseFloat(localStorage.getItem('motorRiderDistance')) || 0;
         let saveCounter = 0;
-        let lastExhaustTime = 0;
 
         function updateHUD() {
             document.getElementById('speed-display').textContent = Math.floor(Math.abs(bike.speed));
@@ -445,23 +268,18 @@
             try { localStorage.setItem('motorRiderMoney', Math.floor(money)); localStorage.setItem('motorRiderDistance', totalDist); } catch(e) {}
         }
 
-        // ============ INPUT ============
+        // INPUT
         let gasOn = false, brakeOn = false, wheelieOn = false;
         const keys = {};
 
-        document.getElementById('gas-btn').addEventListener('touchstart', (e) => { e.preventDefault(); gasOn = true; initAudio(); });
+        document.getElementById('gas-btn').addEventListener('touchstart', (e) => { e.preventDefault(); gasOn = true; });
         document.getElementById('gas-btn').addEventListener('touchend', () => { gasOn = false; });
         document.getElementById('brake-btn').addEventListener('touchstart', (e) => { e.preventDefault(); brakeOn = true; });
         document.getElementById('brake-btn').addEventListener('touchend', () => { brakeOn = false; });
         document.getElementById('btn-wheelie').addEventListener('touchstart', (e) => { e.preventDefault(); wheelieOn = true; });
         document.getElementById('btn-wheelie').addEventListener('touchend', () => { wheelieOn = false; });
-        document.getElementById('btn-horn').addEventListener('touchstart', (e) => { e.preventDefault(); playHorn(); });
 
-        window.addEventListener('keydown', (e) => {
-            keys[e.key.toLowerCase()] = true;
-            if (keys['h']) playHorn();
-            initAudio();
-        });
+        window.addEventListener('keydown', (e) => { keys[e.key.toLowerCase()] = true; });
         window.addEventListener('keyup', (e) => { keys[e.key.toLowerCase()] = false; });
 
         function getInput() {
@@ -479,17 +297,16 @@
             document.getElementById('cam-label').textContent = { 1: 'ARKA', 2: 'ÖN', 3: 'ÜST' }[cameraMode];
         };
 
-        // ============ FİZİK ============
+        // FİZİK
         const bike = { speed: 0, maxSpeed: 200, gear: 0, rpm: 0, wheelieAngle: 0, lateralPos: 0, leanAngle: 0 };
         const gearRatios = [0, 30, 55, 85, 120, 155, 200];
 
         function updatePhysics(dt) {
             const input = getInput();
-
             if (input.gas) { if (bike.speed < 0) bike.speed += 50 * dt; else bike.speed += 40 * (settings.sensitivity / 100) * dt; }
             if (input.brake) { if (bike.speed > 0) bike.speed -= 70 * dt; else if (bike.speed > -35) bike.speed -= 30 * dt; }
             if (!input.gas && !input.brake) { if (bike.speed > 0) bike.speed -= 1 * dt; else if (bike.speed < 0) bike.speed += 1 * dt; }
-            bike.speed = Math.max(-35, Math.min(bike.maxSpeed, bike.speed));
+            bike.speed = Math.max(-35, Math.min(200, bike.speed));
             if (Math.abs(bike.speed) < 0.3) bike.speed = 0;
 
             if (bike.speed <= 0) bike.gear = 0;
@@ -503,28 +320,19 @@
             else bike.wheelieAngle *= 0.85;
             bike.wheelieAngle = Math.max(0, Math.min(45, bike.wheelieAngle));
 
-            // DİREKSİYON - BIRAKINCA ORTAYA DÖNMEZ!
             if (input.left) { bike.lateralPos -= 7 * dt; bike.leanAngle = Math.max(-30, bike.leanAngle - 60 * dt); }
             else if (input.right) { bike.lateralPos += 7 * dt; bike.leanAngle = Math.min(30, bike.leanAngle + 60 * dt); }
-            else { bike.leanAngle *= 0.85; /* lateralPos SABİT kalır */ }
+            else { bike.leanAngle *= 0.85; }
             bike.lateralPos = Math.max(-ROAD_WIDTH/2 + 0.5, Math.min(ROAD_WIDTH/2 - 0.5, bike.lateralPos));
 
             const dist = (Math.abs(bike.speed) / 3.6) * dt;
             totalDist += dist; saveCounter += dist;
             money += dist * 0.05;
             if (saveCounter > 50) { saveProgress(); saveCounter = 0; }
-
-            // Egzoz sesi + alev
-            if (bike.rpm > 0.5 && Math.abs(bike.speed) > 30 && performance.now() - lastExhaustTime > 600) {
-                playExhaustSound();
-                lastExhaustTime = performance.now();
-                if (exhaustType !== 'exhaust_stock') burstFlame();
-            }
         }
 
-        // ============ OYUN DÖNGÜSÜ ============
+        // OYUN DÖNGÜSÜ
         let lastTime = performance.now();
-        let trafficSpawnTimer = 0;
 
         function gameLoop() {
             requestAnimationFrame(gameLoop);
@@ -532,7 +340,7 @@
             const dt = Math.min((now - lastTime) / 1000, 0.1);
             lastTime = now;
 
-            updatePhysics(dt); updateHUD(); updateFlames(dt);
+            updatePhysics(dt); updateHUD();
 
             const moveSpeed = bike.speed * dt * 0.5;
             segments.forEach(seg => {
@@ -540,24 +348,6 @@
                 if (seg.position.z > segLen) seg.position.z -= totalSegs * segLen;
                 if (seg.position.z < -totalSegs * segLen) seg.position.z += totalSegs * segLen;
             });
-
-            // Trafik
-            trafficSpawnTimer += dt;
-            if (trafficSpawnTimer > 2.5) {
-                trafficSpawnTimer = 0;
-                const lane = lanes[Math.floor(Math.random() * lanes.length)];
-                const spd = carSpeeds[Math.floor(Math.random() * carSpeeds.length)];
-                trafficCars.push(createCar(lane, -40, spd));
-            }
-
-            for (let i = trafficCars.length - 1; i >= 0; i--) {
-                const car = trafficCars[i];
-                car.position.z += moveSpeed + car.userData.speed * dt * 0.5;
-                if (car.position.z > 45 || car.position.z < -90) {
-                    scene.remove(car);
-                    trafficCars.splice(i, 1);
-                }
-            }
 
             bikeGroup.position.x = bike.lateralPos;
             bikeGroup.rotation.x = -bike.wheelieAngle * (Math.PI / 180);
@@ -593,7 +383,7 @@
         updateHUD();
         lastTime = performance.now();
         gameLoop();
-        console.log('🏍️ Oyun başladı! Yol: 12m, Trafik: AÇIK, Ses: AÇIK');
+        console.log('🏍️ Oyun başladı! Yol: 12m');
     </script>
 </body>
 </html>
