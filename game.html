@@ -5,126 +5,121 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <title>Motor Rider - Sürüş</title>
     <style>
-        :root { --accent: #ff4d00; --gold: #ffd700; --text: #fff; }
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
-            font-family: 'Segoe UI', 'Arial', sans-serif;
-            background: #000; overflow: hidden;
+            font-family: 'Segoe UI', sans-serif; background: #000; overflow: hidden;
             height: 100vh; width: 100vw;
             user-select: none; -webkit-user-select: none;
-            -webkit-tap-highlight-color: transparent;
-            touch-action: manipulation;
+            -webkit-tap-highlight-color: transparent; touch-action: manipulation;
         }
         #game-canvas { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 1; }
         .hud { position: fixed; z-index: 10; pointer-events: none; }
-        .speedometer {
-            bottom: 40px; left: 25px;
-            background: rgba(0,0,0,0.75); backdrop-filter: blur(15px);
-            border: 2px solid rgba(255,77,0,0.5); border-radius: 20px;
-            padding: 15px 20px; text-align: center; min-width: 100px;
+        .dashboard {
+            bottom: 30px; left: 50%; transform: translateX(-50%);
+            background: rgba(0,0,0,0.85); backdrop-filter: blur(20px);
+            border: 2px solid rgba(255,255,255,0.2); border-radius: 25px;
+            padding: 18px 25px; display: flex; align-items: center; gap: 20px;
         }
-        .speedometer .speed { font-size: clamp(40px,8vw,60px); font-weight: 900; color: #ff4d00; line-height: 1; }
-        .speedometer .unit { font-size: 12px; color: #aaa; letter-spacing: 2px; }
-        .gear-indicator {
-            bottom: 55px; left: 145px;
-            background: rgba(0,0,0,0.75); backdrop-filter: blur(15px);
-            border: 2px solid rgba(255,215,0,0.5); border-radius: 12px;
-            padding: 8px 16px; font-size: 22px; font-weight: 900; color: #ffd700;
+        .speed-val { font-size: 44px; font-weight: 900; color: #ff4d00; line-height: 1; }
+        .speed-unit { font-size: 10px; color: #aaa; }
+        .gear-section {
+            background: rgba(255,215,0,0.15); border: 2px solid rgba(255,215,0,0.4);
+            border-radius: 12px; padding: 8px 14px; font-size: 24px; font-weight: 900;
+            color: #ffd700; min-width: 45px; text-align: center;
         }
-        .rpm-bar-container {
-            top: 25px; left: 50%; transform: translateX(-50%);
-            width: clamp(200px,50vw,350px); height: 8px;
-            background: rgba(255,255,255,0.1); border-radius: 4px;
-            overflow: hidden; border: 1px solid rgba(255,255,255,0.2);
-        }
-        .rpm-bar-fill { height: 100%; border-radius: 4px; width: 0%; }
-        .rpm-label { top: 38px; left: 50%; transform: translateX(-50%); font-size: 11px; color: #aaa; letter-spacing: 2px; }
+        .rpm-section { flex: 1; min-width: 80px; }
+        .rpm-bar-outer { height: 8px; background: rgba(255,255,255,0.1); border-radius: 4px; overflow: hidden; }
+        .rpm-bar-inner { height: 100%; border-radius: 4px; width: 0%; }
+        .rpm-num { font-size: 9px; color: #aaa; text-align: right; margin-top: 2px; }
         .money-hud {
-            top: 25px; right: 25px;
-            background: rgba(0,0,0,0.75); backdrop-filter: blur(15px);
-            border: 2px solid rgba(255,215,0,0.4); border-radius: 30px;
-            padding: 10px 20px; display: flex; align-items: center; gap: 8px;
-            font-size: 18px; font-weight: 700; color: #ffd700;
+            top: 20px; right: 20px;
+            background: rgba(0,0,0,0.75); border: 2px solid rgba(255,215,0,0.4);
+            border-radius: 25px; padding: 8px 16px; display: flex; align-items: center; gap: 6px;
+            font-size: 16px; font-weight: 700; color: #ffd700;
         }
         .distance-hud {
-            top: 75px; right: 25px;
-            background: rgba(0,0,0,0.6); backdrop-filter: blur(10px);
-            border: 1px solid rgba(255,255,255,0.2); border-radius: 20px;
-            padding: 6px 16px; font-size: 13px; color: #aaa;
+            top: 65px; right: 20px;
+            background: rgba(0,0,0,0.6); border: 1px solid rgba(255,255,255,0.2);
+            border-radius: 15px; padding: 5px 12px; font-size: 11px; color: #aaa;
+        }
+        .camera-btn {
+            top: 20px; left: 80px;
+            background: rgba(0,0,0,0.7); border: 2px solid rgba(255,255,255,0.2);
+            border-radius: 20px; padding: 8px 14px; font-size: 12px; color: #fff;
+            z-index: 20; pointer-events: all; cursor: pointer; display: flex; align-items: center; gap: 5px;
         }
         .back-btn {
             top: 20px; left: 20px;
-            background: rgba(0,0,0,0.7); backdrop-filter: blur(10px);
-            border: 2px solid rgba(255,255,255,0.2); border-radius: 50%;
-            width: 40px; height: 40px; display: flex; align-items: center; justify-content: center;
-            cursor: pointer; color: #fff; font-size: 18px; text-decoration: none;
-            z-index: 20; pointer-events: all;
+            background: rgba(0,0,0,0.7); border: 2px solid rgba(255,255,255,0.2);
+            border-radius: 50%; width: 40px; height: 40px; display: flex;
+            align-items: center; justify-content: center; cursor: pointer;
+            color: #fff; font-size: 18px; text-decoration: none; z-index: 20; pointer-events: all;
         }
         .mobile-controls {
-            position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%);
+            position: fixed; bottom: 130px; left: 50%; transform: translateX(-50%);
             z-index: 10; display: flex; gap: 30px; pointer-events: all;
         }
         .ctrl-btn {
-            width: 70px; height: 70px; border-radius: 50%;
+            width: 65px; height: 65px; border-radius: 50%;
             background: rgba(255,255,255,0.1); border: 2px solid rgba(255,255,255,0.3);
             display: flex; align-items: center; justify-content: center;
-            font-size: 28px; color: #fff; cursor: pointer; transition: all 0.15s;
+            font-size: 26px; color: #fff; cursor: pointer;
         }
         .ctrl-btn:active { background: rgba(255,77,0,0.4); border-color: #ff4d00; transform: scale(0.9); }
-        .ctrl-btn.gas { width: 85px; height: 85px; background: rgba(255,77,0,0.2); border-color: rgba(255,77,0,0.6); font-size: 32px; }
+        .ctrl-btn.gas { width: 75px; height: 75px; background: rgba(0,200,0,0.2); border-color: rgba(0,200,0,0.6); font-size: 30px; }
+        .ctrl-btn.brake { background: rgba(200,0,0,0.2); border-color: rgba(200,0,0,0.6); }
         .wheelie-btn {
-            position: fixed; right: 30px; bottom: 130px; z-index: 10;
-            width: 55px; height: 55px; border-radius: 50%;
+            position: fixed; right: 20px; bottom: 210px; z-index: 10;
+            width: 50px; height: 50px; border-radius: 50%;
             background: rgba(255,215,0,0.15); border: 2px solid rgba(255,215,0,0.4);
             display: flex; align-items: center; justify-content: center;
-            font-size: 22px; color: #ffd700; cursor: pointer; pointer-events: all; transition: all 0.15s;
+            font-size: 20px; color: #ffd700; cursor: pointer; pointer-events: all;
         }
         .horn-btn {
-            position: fixed; left: 30px; bottom: 130px; z-index: 10;
-            width: 55px; height: 55px; border-radius: 50%;
+            position: fixed; left: 20px; bottom: 210px; z-index: 10;
+            width: 50px; height: 50px; border-radius: 50%;
             background: rgba(255,255,0,0.15); border: 2px solid rgba(255,255,0,0.4);
             display: flex; align-items: center; justify-content: center;
-            font-size: 22px; color: #ff0; cursor: pointer; pointer-events: all; transition: all 0.15s;
+            font-size: 20px; color: #ff0; cursor: pointer; pointer-events: all;
         }
         .pc-mode .mobile-controls, .pc-mode .wheelie-btn, .pc-mode .horn-btn { display: none !important; }
         @media (max-width:600px) {
-            .speedometer { bottom: 25px; left: 10px; padding: 10px 15px; }
-            .gear-indicator { bottom: 40px; left: 110px; padding: 5px 12px; font-size: 20px; }
-            .ctrl-btn { width: 60px; height: 60px; font-size: 24px; }
-            .ctrl-btn.gas { width: 70px; height: 70px; font-size: 28px; }
-            .mobile-controls { gap: 20px; bottom: 20px; }
-            .horn-btn { left: 15px; bottom: 120px; width: 45px; height: 45px; font-size: 18px; }
-            .wheelie-btn { right: 15px; bottom: 120px; width: 45px; height: 45px; font-size: 18px; }
+            .dashboard { bottom: 15px; padding: 10px 14px; gap: 12px; }
+            .speed-val { font-size: 32px; }
+            .gear-section { font-size: 20px; padding: 5px 10px; }
         }
     </style>
 </head>
 <body>
 
     <canvas id="game-canvas"></canvas>
+    
     <a href="index.html" class="back-btn hud" style="pointer-events:all;">←</a>
+    <div class="camera-btn hud" onclick="switchCamera()" style="pointer-events:all;">📷 <span id="cam-label">ARKA</span></div>
 
-    <div class="hud rpm-bar-container"><div class="rpm-bar-fill" id="rpm-fill"></div></div>
-    <div class="hud rpm-label">RPM</div>
-    <div class="hud speedometer"><div class="speed" id="speed-display">0</div><div class="unit">KM/H</div></div>
-    <div class="hud gear-indicator" id="gear-display">N</div>
+    <div class="hud dashboard">
+        <div><div class="speed-val" id="speed-display">0</div><div class="speed-unit">KM/H</div></div>
+        <div class="gear-section" id="gear-display">N</div>
+        <div class="rpm-section">
+            <div class="rpm-bar-outer"><div class="rpm-bar-inner" id="rpm-fill"></div></div>
+            <div class="rpm-num" id="rpm-text">0 RPM</div>
+        </div>
+    </div>
+
     <div class="hud money-hud"><span>🪙</span> <span id="money-display">0</span></div>
     <div class="hud distance-hud">📏 <span id="distance-display">0</span> m</div>
 
-    <div class="mobile-controls" id="mobile-controls">
-        <button class="ctrl-btn" id="btn-brake"
-            onmousedown="setInput('brake',true)" onmouseup="setInput('brake',false)" onmouseleave="setInput('brake',false)"
-            ontouchstart="setInput('brake',true);event.preventDefault()" ontouchend="setInput('brake',false);event.preventDefault()">🛑</button>
-        <button class="ctrl-btn gas" id="btn-gas"
-            onmousedown="setInput('gas',true)" onmouseup="setInput('gas',false)" onmouseleave="setInput('gas',false)"
-            ontouchstart="setInput('gas',true);event.preventDefault()" ontouchend="setInput('gas',false);event.preventDefault()">🏍️</button>
+    <div class="mobile-controls">
+        <button class="ctrl-btn brake" onmousedown="setInput('brake',true)" onmouseup="setInput('brake',false)" onmouseleave="setInput('brake',false)"
+            ontouchstart="setInput('brake',true);event.preventDefault()" ontouchend="setInput('brake',false);event.preventDefault()">🔽</button>
+        <button class="ctrl-btn gas" onmousedown="setInput('gas',true)" onmouseup="setInput('gas',false)" onmouseleave="setInput('gas',false)"
+            ontouchstart="setInput('gas',true);event.preventDefault()" ontouchend="setInput('gas',false);event.preventDefault()">🔼</button>
     </div>
 
-    <button class="wheelie-btn" id="btn-wheelie"
-        onmousedown="setInput('wheelie',true)" onmouseup="setInput('wheelie',false)" onmouseleave="setInput('wheelie',false)"
+    <button class="wheelie-btn" onmousedown="setInput('wheelie',true)" onmouseup="setInput('wheelie',false)" onmouseleave="setInput('wheelie',false)"
         ontouchstart="setInput('wheelie',true);event.preventDefault()" ontouchend="setInput('wheelie',false);event.preventDefault()">⬆️</button>
 
-    <button class="horn-btn" id="btn-horn"
-        onmousedown="setInput('horn',true)" onmouseup="setInput('horn',false)" onmouseleave="setInput('horn',false)"
+    <button class="horn-btn" onmousedown="setInput('horn',true)" onmouseup="setInput('horn',false)" onmouseleave="setInput('horn',false)"
         ontouchstart="setInput('horn',true);event.preventDefault()" ontouchend="setInput('horn',false);event.preventDefault()">📢</button>
 
     <script type="importmap">
@@ -134,9 +129,13 @@
     <script type="module">
         import * as THREE from 'three';
 
-        // ============ AYARLAR ============
-        const settings = JSON.parse(localStorage.getItem('motorRiderSettings')) || { mode: 'phone', sensitivity: 65 };
+        // ============ AYARLAR & MODİFİYE ============
+        const settings = JSON.parse(localStorage.getItem('motorRiderSettings')) || { mode: 'phone', sensitivity: 65, drawDistance: 100 };
         if (settings.mode === 'pc') document.body.classList.add('pc-mode');
+
+        const bikeColor = localStorage.getItem('motorRiderBikeColor') || '#ff3300';
+        const equippedMods = JSON.parse(localStorage.getItem('motorRiderEquippedMods')) || { egzoz: 'exhaust_stock' };
+        const exhaustType = equippedMods['egzoz'] || 'exhaust_stock';
 
         // ============ THREE.JS ============
         const canvas = document.getElementById('game-canvas');
@@ -144,274 +143,171 @@
         renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
         renderer.setSize(window.innerWidth, window.innerHeight);
         renderer.shadowMap.enabled = true;
-        renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 
         const scene = new THREE.Scene();
         scene.background = new THREE.Color('#87CEEB');
-        scene.fog = new THREE.Fog('#87CEEB', 30, 120);
+        const fogDist = 30 + (settings.drawDistance / 100) * 90;
+        scene.fog = new THREE.Fog('#87CEEB', fogDist * 0.5, fogDist);
 
-        const camera = new THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight, 0.5, 200);
-        camera.position.set(0, 3.5, -5);
-        camera.lookAt(0, 1, 10);
+        const camera = new THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight, 0.3, fogDist + 30);
+        let cameraMode = 1;
+        camera.position.set(0, 3.5, -6);
 
-        // ============ IŞIK ============
-        scene.add(new THREE.AmbientLight('#ffffff', 0.6));
-        const sun = new THREE.DirectionalLight('#fff8e7', 1.8);
-        sun.position.set(20, 30, 10);
-        sun.castShadow = true;
-        sun.shadow.mapSize.width = 2048;
-        sun.shadow.mapSize.height = 2048;
-        sun.shadow.camera.left = -30; sun.shadow.camera.right = 30;
-        sun.shadow.camera.top = 30; sun.shadow.camera.bottom = -30;
+        window.switchCamera = function() {
+            cameraMode = cameraMode === 1 ? 2 : (cameraMode === 2 ? 3 : 1);
+            const labels = { 1: 'ARKA', 2: 'ÖN', 3: 'ÜST' };
+            document.getElementById('cam-label').textContent = labels[cameraMode];
+        };
+
+        scene.add(new THREE.AmbientLight('#ffffff', 0.7));
+        const sun = new THREE.DirectionalLight('#fff8e7', 2);
+        sun.position.set(30, 40, 20); sun.castShadow = true;
+        sun.shadow.mapSize.width = 2048; sun.shadow.mapSize.height = 2048;
+        sun.shadow.camera.left = -40; sun.shadow.camera.right = 40;
+        sun.shadow.camera.top = 40; sun.shadow.camera.bottom = -40;
         sun.shadow.camera.far = 150;
         scene.add(sun);
 
-        // ============ MOTOR ============
+        // ============ MOTOR (GARAJ RENGİ VE EGZOZU İLE) ============
         const bikeGroup = new THREE.Group();
-        const bodyMat = new THREE.MeshStandardMaterial({ color: '#ff3300', roughness: 0.2, metalness: 0.8 });
-        const darkMat = new THREE.MeshStandardMaterial({ color: '#1a1a1a', roughness: 0.3, metalness: 0.7 });
         const chromeMat = new THREE.MeshStandardMaterial({ color: '#ccc', roughness: 0.1, metalness: 1 });
         const tireMat = new THREE.MeshStandardMaterial({ color: '#111', roughness: 0.9 });
         const seatMat = new THREE.MeshStandardMaterial({ color: '#111', roughness: 0.8 });
+        const darkMat = new THREE.MeshStandardMaterial({ color: '#1a1a1a', roughness: 0.3, metalness: 0.7 });
+        const bodyMat = new THREE.MeshStandardMaterial({ color: bikeColor, roughness: 0.15, metalness: 0.8 });
 
         const body = new THREE.Mesh(new THREE.BoxGeometry(0.35, 0.45, 1.7), bodyMat);
         body.position.y = 0.65; body.castShadow = true; bikeGroup.add(body);
-
-        const engine = new THREE.Mesh(new THREE.BoxGeometry(0.35, 0.4, 0.5), darkMat);
-        engine.position.set(0, 0.5, -0.05); engine.castShadow = true; bikeGroup.add(engine);
-
+        const eng = new THREE.Mesh(new THREE.BoxGeometry(0.35, 0.4, 0.5), darkMat);
+        eng.position.set(0, 0.5, -0.05); bikeGroup.add(eng);
         const tank = new THREE.Mesh(new THREE.CylinderGeometry(0.2, 0.23, 0.65, 12), bodyMat);
-        tank.rotation.x = Math.PI / 2; tank.position.set(0, 0.9, 0.25); tank.castShadow = true; bikeGroup.add(tank);
-
+        tank.rotation.x = Math.PI / 2; tank.position.set(0, 0.9, 0.25); bikeGroup.add(tank);
         const seat = new THREE.Mesh(new THREE.BoxGeometry(0.26, 0.12, 0.55), seatMat);
         seat.position.set(0, 0.92, -0.45); bikeGroup.add(seat);
-
-        const headlight = new THREE.Mesh(new THREE.CylinderGeometry(0.1, 0.1, 0.06, 12),
+        const hl = new THREE.Mesh(new THREE.CylinderGeometry(0.1, 0.1, 0.06, 12),
             new THREE.MeshStandardMaterial({ color: '#fff', emissive: '#fff', emissiveIntensity: 0.8 }));
-        headlight.rotation.x = Math.PI / 2; headlight.position.set(0, 0.85, 1.0); bikeGroup.add(headlight);
+        hl.rotation.x = Math.PI / 2; hl.position.set(0, 0.85, 1.0); bikeGroup.add(hl);
 
-        const frontWheel = new THREE.Group();
-        frontWheel.position.set(0, 0.15, 0.9);
-        frontWheel.add(new THREE.Mesh(new THREE.TorusGeometry(0.28, 0.09, 8, 16), tireMat));
+        const fw = new THREE.Group(); fw.position.set(0, 0.15, 0.9);
+        fw.add(new THREE.Mesh(new THREE.TorusGeometry(0.28, 0.09, 8, 16), tireMat));
         const fr = new THREE.Mesh(new THREE.CylinderGeometry(0.22, 0.22, 0.1, 16), chromeMat);
-        fr.rotation.x = Math.PI / 2; frontWheel.add(fr); bikeGroup.add(frontWheel);
+        fr.rotation.x = Math.PI / 2; fw.add(fr); bikeGroup.add(fw);
 
-        const rearWheel = new THREE.Group();
-        rearWheel.position.set(0, 0.15, -0.75);
-        rearWheel.add(new THREE.Mesh(new THREE.TorusGeometry(0.28, 0.09, 8, 16), tireMat));
+        const rw = new THREE.Group(); rw.position.set(0, 0.15, -0.75);
+        rw.add(new THREE.Mesh(new THREE.TorusGeometry(0.28, 0.09, 8, 16), tireMat));
         const rr = new THREE.Mesh(new THREE.CylinderGeometry(0.22, 0.22, 0.1, 16), chromeMat);
-        rr.rotation.x = Math.PI / 2; rearWheel.add(rr); bikeGroup.add(rearWheel);
+        rr.rotation.x = Math.PI / 2; rw.add(rr); bikeGroup.add(rw);
 
-        const hbar = new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.04, 0.65, 8), chromeMat);
-        hbar.rotation.z = Math.PI / 2; hbar.position.set(0, 1.2, 0.8); bikeGroup.add(hbar);
+        const hb = new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.04, 0.65, 8), chromeMat);
+        hb.rotation.z = Math.PI / 2; hb.position.set(0, 1.2, 0.8); bikeGroup.add(hb);
 
-        const exhaust = new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.05, 0.8, 8), chromeMat);
-        exhaust.position.set(0.18, 0.2, -0.85); exhaust.rotation.x = -0.2; bikeGroup.add(exhaust);
-
+        // EGZOZ
+        const exhaustGroup = new THREE.Group();
+        function clearExhaust() { while (exhaustGroup.children.length > 0) exhaustGroup.remove(exhaustGroup.children[0]); }
+        
+        if (exhaustType === 'exhaust_sport') {
+            const dm = new THREE.MeshStandardMaterial({ color: '#333', roughness: 0.2, metalness: 0.9 });
+            const p = new THREE.Mesh(new THREE.CylinderGeometry(0.05, 0.06, 0.9, 8), dm);
+            p.position.set(0.25, 0.25, -0.5); p.rotation.x = -0.15; exhaustGroup.add(p);
+            const b = new THREE.Mesh(new THREE.BoxGeometry(0.16, 0.1, 0.5), dm);
+            b.position.set(0.25, 0.06, -1.0); exhaustGroup.add(b);
+            const t = new THREE.Mesh(new THREE.CylinderGeometry(0.06, 0.07, 0.12, 8),
+                new THREE.MeshStandardMaterial({ color: '#ffd700', roughness: 0.1, metalness: 1 }));
+            t.position.set(0.25, 0.06, -1.3); exhaustGroup.add(t);
+        } else if (exhaustType === 'exhaust_race') {
+            const cm = new THREE.MeshStandardMaterial({ color: '#1a1a1a', roughness: 0.3, metalness: 0.4 });
+            const p = new THREE.Mesh(new THREE.CylinderGeometry(0.05, 0.06, 0.8, 8), cm);
+            p.position.set(0.25, 0.25, -0.45); p.rotation.x = -0.1; exhaustGroup.add(p);
+            const b = new THREE.Mesh(new THREE.BoxGeometry(0.18, 0.12, 0.4), cm);
+            b.position.set(0.25, 0.06, -0.9); exhaustGroup.add(b);
+            for (let s = -1; s <= 1; s += 2) {
+                const t = new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.05, 0.1, 8),
+                    new THREE.MeshStandardMaterial({ color: '#ff4400', roughness: 0.1, metalness: 1 }));
+                t.position.set(0.25 + s * 0.05, 0.06, -1.15); exhaustGroup.add(t);
+            }
+        } else {
+            const p = new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.05, 0.9, 8), chromeMat);
+            p.position.set(0.2, 0.25, -0.5); p.rotation.x = -0.2; exhaustGroup.add(p);
+            const b = new THREE.Mesh(new THREE.BoxGeometry(0.14, 0.09, 0.45), chromeMat);
+            b.position.set(0.2, 0.06, -1.0); exhaustGroup.add(b);
+            const t = new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.05, 0.08, 8), bodyMat);
+            t.position.set(0.2, 0.06, -1.25); exhaustGroup.add(t);
+        }
+        bikeGroup.add(exhaustGroup);
         scene.add(bikeGroup);
 
-        // ============ YOL VE ÇEVRE ============
-        const roadGroup = new THREE.Group();
-        scene.add(roadGroup);
-
+        // ============ YOL ============
+        const roadGroup = new THREE.Group(); scene.add(roadGroup);
         const roadMat = new THREE.MeshStandardMaterial({ color: '#444', roughness: 0.8 });
-        const sidewalkMat = new THREE.MeshStandardMaterial({ color: '#999', roughness: 0.7 });
         const grassMat = new THREE.MeshStandardMaterial({ color: '#2d5a1e', roughness: 0.9 });
-        const buildingMat1 = new THREE.MeshStandardMaterial({ color: '#c4a882', roughness: 0.6 });
-        const buildingMat2 = new THREE.MeshStandardMaterial({ color: '#d5c4a1', roughness: 0.5 });
-        const buildingMat3 = new THREE.MeshStandardMaterial({ color: '#b8c5d0', roughness: 0.4, metalness: 0.3 });
-
+        const bMats = [
+            new THREE.MeshStandardMaterial({ color: '#c4a882', roughness: 0.6 }),
+            new THREE.MeshStandardMaterial({ color: '#d5c4a1', roughness: 0.5 }),
+            new THREE.MeshStandardMaterial({ color: '#b8c5d0', roughness: 0.4, metalness: 0.3 })
+        ];
         const segments = [];
-        const segLen = 25;
-        const totalSegs = 8;
+        const segLen = 30, totalSegs = 6;
 
-        function createTree(x, z) {
-            const tree = new THREE.Group();
-            const trunkH = 2 + Math.random() * 2;
-            const trunk = new THREE.Mesh(new THREE.CylinderGeometry(0.15, 0.2, trunkH, 6),
-                new THREE.MeshStandardMaterial({ color: '#8B5E3C', roughness: 0.9 }));
-            trunk.position.y = trunkH / 2;
-            trunk.castShadow = true;
-            tree.add(trunk);
-            const leaves = new THREE.Mesh(new THREE.ConeGeometry(1.2, 3, 8),
-                new THREE.MeshStandardMaterial({ color: '#1a5c1a', roughness: 0.8 }));
-            leaves.position.y = trunkH + 1;
-            leaves.castShadow = true;
-            tree.add(leaves);
-            tree.position.set(x, 0, z);
-            return tree;
-        }
-
-        function createBuilding(x, z, w, h, d, mat) {
-            const building = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), mat);
-            building.position.set(x, h / 2, z);
-            building.castShadow = true;
-            building.receiveShadow = true;
-            return building;
-        }
-
-        function createLampPost(x, z) {
-            const post = new THREE.Group();
-            const pole = new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.1, 7, 6),
-                new THREE.MeshStandardMaterial({ color: '#555', roughness: 0.4, metalness: 0.7 }));
-            pole.position.y = 3.5;
-            pole.castShadow = true;
-            post.add(pole);
-            const light = new THREE.Mesh(new THREE.SphereGeometry(0.3, 8),
-                new THREE.MeshStandardMaterial({ color: '#ffd', emissive: '#ffd', emissiveIntensity: 0.4 }));
-            light.position.y = 7;
-            post.add(light);
-            post.position.set(x, 0, z);
-            return post;
-        }
-
-        function createSegment(zStart) {
-            const group = new THREE.Group();
-
-            // Yol
+        function createSegment(zPos) {
+            const g = new THREE.Group();
             const road = new THREE.Mesh(new THREE.PlaneGeometry(8, segLen), roadMat);
-            road.rotation.x = -Math.PI / 2; road.position.set(0, 0.01, segLen / 2);
-            road.receiveShadow = true; group.add(road);
-
-            // Orta çizgi (kesik)
+            road.rotation.x = -Math.PI / 2; road.position.set(0, 0.01, segLen/2); road.receiveShadow = true; g.add(road);
             for (let z = 0; z < segLen; z += 4) {
-                const dash = new THREE.Mesh(new THREE.PlaneGeometry(0.3, 2.5),
-                    new THREE.MeshStandardMaterial({ color: '#fff', roughness: 0.3, emissive: '#fff', emissiveIntensity: 0.2 }));
-                dash.rotation.x = -Math.PI / 2; dash.position.set(0, 0.02, z + 1.5); group.add(dash);
+                const dash = new THREE.Mesh(new THREE.PlaneGeometry(0.3, 2.5), new THREE.MeshStandardMaterial({ color: '#fff' }));
+                dash.rotation.x = -Math.PI / 2; dash.position.set(0, 0.02, z + 2); g.add(dash);
             }
-
-            // Kenar çizgileri
             for (let s = -1; s <= 1; s += 2) {
-                const edge = new THREE.Mesh(new THREE.PlaneGeometry(0.2, segLen),
-                    new THREE.MeshStandardMaterial({ color: '#fff', roughness: 0.3 }));
-                edge.rotation.x = -Math.PI / 2; edge.position.set(s * 3.5, 0.02, segLen / 2); group.add(edge);
+                const edge = new THREE.Mesh(new THREE.PlaneGeometry(0.2, segLen), new THREE.MeshStandardMaterial({ color: '#fff' }));
+                edge.rotation.x = -Math.PI / 2; edge.position.set(s * 3.5, 0.02, segLen/2); g.add(edge);
+                const grass = new THREE.Mesh(new THREE.PlaneGeometry(10, segLen), grassMat);
+                grass.rotation.x = -Math.PI / 2; grass.position.set(s * 10, -0.02, segLen/2); grass.receiveShadow = true; g.add(grass);
             }
-
-            // Kaldırım
             for (let s = -1; s <= 1; s += 2) {
-                const sw = new THREE.Mesh(new THREE.BoxGeometry(1.5, 0.2, segLen), sidewalkMat);
-                sw.position.set(s * 4.7, -0.05, segLen / 2); sw.receiveShadow = true; group.add(sw);
-            }
-
-            // Çimen
-            for (let s = -1; s <= 1; s += 2) {
-                const grass = new THREE.Mesh(new THREE.PlaneGeometry(8, segLen), grassMat);
-                grass.rotation.x = -Math.PI / 2; grass.position.set(s * 10, -0.02, segLen / 2);
-                grass.receiveShadow = true; group.add(grass);
-            }
-
-            // Ağaçlar
-            for (let s = -1; s <= 1; s += 2) {
-                const treeCount = 2 + Math.floor(Math.random() * 3);
-                for (let t = 0; t < treeCount; t++) {
-                    const tree = createTree(s * (7 + Math.random() * 5), Math.random() * segLen);
-                    group.add(tree);
+                for (let t = 0; t < 3; t++) {
+                    const tree = new THREE.Group();
+                    const th = 2 + Math.random() * 3;
+                    tree.add(new THREE.Mesh(new THREE.CylinderGeometry(0.12, 0.18, th, 6), new THREE.MeshStandardMaterial({ color: '#8B5E3C', roughness: 0.9 })).position.set(0, th/2, 0));
+                    tree.add(new THREE.Mesh(new THREE.ConeGeometry(1.2, 3.5, 8), new THREE.MeshStandardMaterial({ color: '#1a5c1a', roughness: 0.8 })).position.set(0, th+1.2, 0));
+                    tree.position.set(s * (7 + Math.random() * 6), 0, Math.random() * segLen); g.add(tree);
+                }
+                if (Math.random() > 0.4) {
+                    const bw = 3 + Math.random() * 6, bh = 8 + Math.random() * 25, bd = 4 + Math.random() * 10;
+                    const b = new THREE.Mesh(new THREE.BoxGeometry(bw, bh, bd), bMats[Math.floor(Math.random()*3)]);
+                    b.position.set(s * (10 + bw/2), bh/2, Math.random() * (segLen - bd));
+                    b.castShadow = true; b.receiveShadow = true; g.add(b);
                 }
             }
-
-            // Binalar (sadece bazı segmentlerde)
-            if (Math.random() > 0.3) {
-                const mats = [buildingMat1, buildingMat2, buildingMat3];
-                for (let s = -1; s <= 1; s += 2) {
-                    if (Math.random() > 0.3) {
-                        const bw = 3 + Math.random() * 5;
-                        const bh = 8 + Math.random() * 20;
-                        const bd = 4 + Math.random() * 8;
-                        const building = createBuilding(s * (10 + bw / 2), Math.random() * (segLen - bd), bw, bh, bd,
-                            mats[Math.floor(Math.random() * 3)]);
-                        group.add(building);
-                    }
-                }
-            }
-
-            // Lamba direkleri
-            for (let s = -1; s <= 1; s += 2) {
-                if (Math.random() > 0.3) {
-                    const lamp = createLampPost(s * 5.5, Math.random() * segLen);
-                    group.add(lamp);
-                }
-            }
-
-            group.position.z = zStart;
-            return group;
+            g.position.z = zPos; return g;
         }
 
         for (let i = 0; i < totalSegs; i++) {
             const seg = createSegment(-i * segLen);
-            segments.push(seg);
-            roadGroup.add(seg);
+            segments.push(seg); roadGroup.add(seg);
         }
 
-        // ============ SES SİSTEMİ ============
-        let audioCtx = null;
-        let engineOsc = null;
-        let engineGain = null;
-        let engineRunning = false;
-
-        function initAudio() {
-            if (!audioCtx) {
-                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-            }
-        }
-
-        function startEngineSound() {
-            if (engineRunning) return;
-            initAudio();
-            engineOsc = audioCtx.createOscillator();
-            engineGain = audioCtx.createGain();
-            const distortion = audioCtx.createWaveShaper();
-            distortion.curve = new Float32Array([0, 0.3, 0.5, 0.5, 0.4, 0.2, -0.1, -0.3, -0.2, 0]);
-            engineOsc.type = 'sawtooth';
-            engineOsc.frequency.value = 60;
+        // ============ SES ============
+        let audioCtx = null, engineOsc = null, engineGain = null, engineRunning = false;
+        function initAudio() { if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)(); }
+        function startEngine() {
+            if (engineRunning) return; initAudio();
+            engineOsc = audioCtx.createOscillator(); engineGain = audioCtx.createGain();
+            engineOsc.type = 'sawtooth'; engineOsc.frequency.value = 55;
             engineGain.gain.value = 0;
-            engineOsc.connect(distortion);
-            distortion.connect(engineGain);
-            engineGain.connect(audioCtx.destination);
-            engineOsc.start();
-            engineRunning = true;
+            engineOsc.connect(engineGain); engineGain.connect(audioCtx.destination);
+            engineOsc.start(); engineRunning = true;
         }
-
-        function updateEngineSound(speed, rpm) {
+        function updateEngineSound(spd, rpm) {
             if (!engineRunning) return;
-            const freq = 40 + (rpm / 100) * 120 + (speed / 200) * 60;
-            engineOsc.frequency.setTargetAtTime(freq, audioCtx.currentTime, 0.05);
-            const vol = 0.01 + (rpm / 100) * 0.08;
-            engineGain.gain.setTargetAtTime(vol, audioCtx.currentTime, 0.05);
+            engineOsc.frequency.setTargetAtTime(40 + rpm * 130, audioCtx.currentTime, 0.05);
+            engineGain.gain.setTargetAtTime(0.01 + rpm * 0.08, audioCtx.currentTime, 0.05);
         }
-
-        function stopEngineSound() {
-            if (engineRunning && engineGain) {
-                engineGain.gain.setTargetAtTime(0, audioCtx.currentTime, 0.1);
-                setTimeout(() => { if (engineOsc) { engineOsc.stop(); engineRunning = false; } }, 200);
-            }
-        }
-
         function playHorn() {
-            initAudio();
-            const osc = audioCtx.createOscillator();
-            const gain = audioCtx.createGain();
-            osc.type = 'square';
-            osc.frequency.value = 440;
-            gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
-            gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.5);
-            osc.connect(gain);
-            gain.connect(audioCtx.destination);
-            osc.start();
-            osc.stop(audioCtx.currentTime + 0.5);
-        }
-
-        function playExhaustPop() {
-            initAudio();
-            const buf = audioCtx.createBuffer(1, 0.4 * audioCtx.sampleRate, audioCtx.sampleRate);
-            const d = buf.getChannelData(0);
-            for (let i = 0; i < d.length; i++) {
-                d[i] = (Math.random() * 2 - 1) * Math.exp(-i / audioCtx.sampleRate * 12) * 0.5;
-            }
-            const src = audioCtx.createBufferSource(); src.buffer = buf;
-            const g = audioCtx.createGain();
-            g.gain.setValueAtTime(0.6, audioCtx.currentTime);
+            initAudio(); const o = audioCtx.createOscillator(); const g = audioCtx.createGain();
+            o.type = 'square'; o.frequency.value = 440;
+            g.gain.setValueAtTime(0.3, audioCtx.currentTime);
             g.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.4);
-            src.connect(g); g.connect(audioCtx.destination); src.start();
+            o.connect(g); g.connect(audioCtx.destination);
+            o.start(); o.stop(audioCtx.currentTime + 0.4);
         }
 
         // ============ PARA ============
@@ -419,173 +315,144 @@
         let totalDist = parseFloat(localStorage.getItem('motorRiderDistance')) || 0;
         let saveCounter = 0;
 
-        function updateMoney() {
+        function updateHUD() {
+            document.getElementById('speed-display').textContent = Math.floor(Math.abs(bike.speed));
+            document.getElementById('gear-display').textContent = bike.speed < -0.5 ? 'R' : (bike.gear === 0 ? 'N' : bike.gear);
             document.getElementById('money-display').textContent = Math.floor(money).toLocaleString('tr-TR');
             document.getElementById('distance-display').textContent = Math.floor(totalDist);
+            const rf = document.getElementById('rpm-fill');
+            rf.style.width = (bike.rpm * 100) + '%';
+            document.getElementById('rpm-text').textContent = Math.floor(bike.rpm * 10000) + ' RPM';
+            if (bike.rpm > 0.9) rf.style.background = '#ff0000';
+            else if (bike.rpm > 0.7) rf.style.background = 'linear-gradient(90deg, #ffd700, #ff4d00)';
+            else rf.style.background = 'linear-gradient(90deg, #00ff88, #ffd700)';
         }
-        updateMoney();
 
         function saveProgress() {
             localStorage.setItem('motorRiderMoney', Math.floor(money));
             localStorage.setItem('motorRiderDistance', totalDist);
         }
 
-        // ============ INPUT ============
+        // ============ INPUT (W=İLERİ, S=FREN/GERİ) ============
         const input = { gas: false, brake: false, wheelie: false, horn: false, steerLeft: false, steerRight: false };
         window.setInput = function(name, val) {
             input[name] = val;
-            if (name === 'gas' && val) { initAudio(); startEngineSound(); }
+            if (name === 'gas' && val) { initAudio(); startEngine(); }
             if (name === 'horn' && val) playHorn();
         };
 
         const keys = {};
-        window.addEventListener('keydown', e => { keys[e.key.toLowerCase()] = true; updateKeys(); });
-        window.addEventListener('keyup', e => { keys[e.key.toLowerCase()] = false; updateKeys(); });
-        function updateKeys() {
+        window.addEventListener('keydown', e => {
+            keys[e.key.toLowerCase()] = true;
             input.gas = keys['w'] || keys['arrowup'] || false;
             input.brake = keys['s'] || keys['arrowdown'] || false;
             input.steerLeft = keys['a'] || keys['arrowleft'] || false;
             input.steerRight = keys['d'] || keys['arrowright'] || false;
             input.wheelie = keys['shift'] || false;
             input.horn = keys['h'] || false;
-            if (input.gas) { initAudio(); startEngineSound(); }
+            if (input.gas) { initAudio(); startEngine(); }
             if (input.horn) playHorn();
-        }
+        });
+        window.addEventListener('keyup', e => {
+            keys[e.key.toLowerCase()] = false;
+            input.gas = keys['w'] || keys['arrowup'] || false;
+            input.brake = keys['s'] || keys['arrowdown'] || false;
+            input.steerLeft = keys['a'] || keys['arrowleft'] || false;
+            input.steerRight = keys['d'] || keys['arrowright'] || false;
+            input.wheelie = keys['shift'] || false;
+            input.horn = keys['h'] || false;
+        });
 
         // ============ FİZİK ============
         const bike = { speed: 0, maxSpeed: 200, gear: 0, rpm: 0, wheelieAngle: 0, lateralPos: 0, leanAngle: 0 };
         const gearRatios = [0, 30, 55, 85, 120, 155, 200];
 
         function updatePhysics(dt) {
-            // Gaz
-            if (input.gas && bike.speed < bike.maxSpeed) {
-                bike.speed += 40 * (settings.sensitivity / 100) * dt;
+            // W = GAZ (ileri)
+            if (input.gas) {
+                if (bike.speed < 0) bike.speed += 50 * dt;
+                else bike.speed += 40 * (settings.sensitivity / 100) * dt;
             }
-            // Fren / Geri vites
+            // S = FREN
             if (input.brake) {
-                if (bike.speed > 0) {
-                    bike.speed -= 70 * dt;
-                } else if (bike.speed <= 0 && bike.speed > -30) {
-                    bike.speed -= 30 * dt; // Geri gitme
-                }
+                if (bike.speed > 0) bike.speed -= 70 * dt;
+                else if (bike.speed > -35) bike.speed -= 30 * dt;
             }
             // Sürtünme
             if (!input.gas && !input.brake) {
-                if (bike.speed > 0) bike.speed -= 0.8 * dt;
-                else if (bike.speed < 0) bike.speed += 0.8 * dt;
+                if (bike.speed > 0) bike.speed -= 1 * dt;
+                else if (bike.speed < 0) bike.speed += 1 * dt;
             }
+            bike.speed = Math.max(-35, Math.min(bike.maxSpeed, bike.speed));
+            if (Math.abs(bike.speed) < 0.3) bike.speed = 0;
 
-            bike.speed = Math.max(-30, Math.min(bike.maxSpeed, bike.speed));
-            if (Math.abs(bike.speed) < 0.1) bike.speed = 0;
-
-            // Vites (sadece ileri)
-            if (bike.speed < 1) bike.gear = 0;
-            else {
-                for (let g = 6; g >= 1; g--) {
-                    if (bike.speed >= gearRatios[g - 1]) { bike.gear = g; break; }
-                }
-            }
-            if (bike.speed < 0) bike.gear = 0;
+            // Vites
+            if (bike.speed <= 0) bike.gear = 0;
+            else for (let g = 6; g >= 1; g--) if (bike.speed >= gearRatios[g-1]) { bike.gear = g; break; }
 
             // RPM
-            const absSpeed = Math.abs(bike.speed);
-            if (bike.gear === 0) bike.rpm = input.gas ? 25 : 5;
-            else {
-                const ratio = (absSpeed - gearRatios[bike.gear - 1]) / (gearRatios[bike.gear] - gearRatios[bike.gear - 1]);
-                bike.rpm = 15 + ratio * 85;
-            }
-            bike.rpm = Math.max(0, Math.min(100, bike.rpm));
+            const absSpd = Math.abs(bike.speed);
+            if (bike.gear === 0) bike.rpm = input.gas ? 0.25 : 0.05;
+            else bike.rpm = 0.15 + ((absSpd - gearRatios[bike.gear-1]) / (gearRatios[bike.gear] - gearRatios[bike.gear-1])) * 0.85;
+            bike.rpm = Math.max(0, Math.min(1, bike.rpm));
 
             // Wheelie
-            if (input.wheelie && bike.speed > 20) {
-                bike.wheelieAngle += 45 * dt;
-            } else {
-                bike.wheelieAngle *= 0.85;
-            }
+            if (input.wheelie && bike.speed > 20) bike.wheelieAngle += 50 * dt;
+            else bike.wheelieAngle *= 0.85;
             bike.wheelieAngle = Math.max(0, Math.min(45, bike.wheelieAngle));
 
-            // Direksiyon + Yatma
-            if (input.steerLeft) {
-                bike.lateralPos -= 6 * dt;
-                bike.leanAngle = Math.max(-25, bike.leanAngle - 50 * dt);
-            } else if (input.steerRight) {
-                bike.lateralPos += 6 * dt;
-                bike.leanAngle = Math.min(25, bike.leanAngle + 50 * dt);
-            } else {
-                bike.leanAngle *= 0.9;
-            }
+            // Direksiyon
+            if (input.steerLeft) { bike.lateralPos -= 6 * dt; bike.leanAngle = Math.max(-25, bike.leanAngle - 50 * dt); }
+            else if (input.steerRight) { bike.lateralPos += 6 * dt; bike.leanAngle = Math.min(25, bike.leanAngle + 50 * dt); }
+            else bike.leanAngle *= 0.9;
             bike.lateralPos *= 0.92;
             bike.lateralPos = Math.max(-3.5, Math.min(3.5, bike.lateralPos));
 
-            // Mesafe & Para (mutlak değer)
+            // Mesafe & Para
             const dist = (Math.abs(bike.speed) / 3.6) * dt;
-            totalDist += dist;
-            saveCounter += dist;
+            totalDist += dist; saveCounter += dist;
             money += dist * 0.05;
-
             if (saveCounter > 50) { saveProgress(); saveCounter = 0; }
-
-            // Ses
             updateEngineSound(Math.abs(bike.speed), bike.rpm);
-
-            // Yavaşlarken egzoz patlaması
-            if (bike.rpm > 70 && Math.abs(bike.speed) > 50 && Math.random() < dt * 2) {
-                playExhaustPop();
-            }
-        }
-
-        function updateHUD() {
-            document.getElementById('speed-display').textContent = Math.floor(Math.abs(bike.speed));
-            document.getElementById('gear-display').textContent = bike.speed < 0 ? 'R' : (bike.gear === 0 ? 'N' : bike.gear);
-            const rpmFill = document.getElementById('rpm-fill');
-            rpmFill.style.width = bike.rpm + '%';
-            if (bike.rpm > 90) rpmFill.style.background = '#ff0000';
-            else if (bike.rpm > 70) rpmFill.style.background = 'linear-gradient(90deg, #ffd700, #ff4d00)';
-            else rpmFill.style.background = 'linear-gradient(90deg, #00ff88, #ffd700)';
-            updateMoney();
         }
 
         // ============ OYUN DÖNGÜSÜ ============
         const clock = new THREE.Clock();
-
         function animate() {
             requestAnimationFrame(animate);
             const dt = Math.min(clock.getDelta(), 0.1);
-            updatePhysics(dt);
-            updateHUD();
+            updatePhysics(dt); updateHUD();
 
-            // Yol hareketi
+            // YOL: bike.speed pozitif = ileri, yol GERİYE akar
             const moveSpeed = bike.speed * dt * 0.5;
-            segments.forEach((seg, i) => {
+            segments.forEach(seg => {
                 seg.position.z += moveSpeed;
-                if (seg.position.z > segLen) {
-                    seg.position.z -= totalSegs * segLen;
-                }
-                if (seg.position.z < -segLen * (totalSegs - 1)) {
-                    seg.position.z += totalSegs * segLen;
-                }
+                if (seg.position.z > segLen) seg.position.z -= totalSegs * segLen;
+                if (seg.position.z < -segLen * totalSegs) seg.position.z += totalSegs * segLen;
             });
 
-            // Motor pozisyonu
+            // Motor
             bikeGroup.position.x = bike.lateralPos;
-            bikeGroup.position.z = 0;
             bikeGroup.rotation.x = -bike.wheelieAngle * (Math.PI / 180);
             bikeGroup.rotation.z = -bike.leanAngle * (Math.PI / 180);
             bikeGroup.position.y = bike.wheelieAngle * 0.015;
 
-            // Tekerlekler
-            const wheelRot = bike.speed * dt * 0.5;
-            frontWheel.children[0].rotation.x += wheelRot;
-            rearWheel.children[0].rotation.x += wheelRot;
+            // Tekerlek
+            const wr = bike.speed * dt * 0.5;
+            fw.children[0].rotation.x += wr;
+            rw.children[0].rotation.x += wr;
 
             // Kamera
-            const targetCamX = bike.lateralPos * 0.4;
-            const targetCamY = 3.5 + Math.abs(bike.speed) * 0.008;
-            const targetCamZ = -5 - Math.abs(bike.speed) * 0.02;
-            camera.position.x += (targetCamX - camera.position.x) * 3 * dt;
-            camera.position.y += (targetCamY - camera.position.y) * 3 * dt;
-            camera.position.z += (targetCamZ - camera.position.z) * 3 * dt;
-            camera.lookAt(bike.lateralPos * 0.6, 1.2 + bike.wheelieAngle * 0.02, 8);
+            if (cameraMode === 1) {
+                camera.position.lerp(new THREE.Vector3(bike.lateralPos * 0.4, 3.5 + Math.abs(bike.speed) * 0.01, -6 - Math.abs(bike.speed) * 0.02), 3 * dt);
+                camera.lookAt(bike.lateralPos * 0.5, 1.2, 8);
+            } else if (cameraMode === 2) {
+                camera.position.lerp(new THREE.Vector3(bike.lateralPos * 0.3, 1.8, 2), 3 * dt);
+                camera.lookAt(bike.lateralPos * 0.5, 1.0, -5);
+            } else {
+                camera.position.lerp(new THREE.Vector3(bike.lateralPos * 0.3, 15, 5), 3 * dt);
+                camera.lookAt(bike.lateralPos * 0.5, 0, 10);
+            }
 
             renderer.render(scene, camera);
         }
@@ -595,16 +462,13 @@
             camera.updateProjectionMatrix();
             renderer.setSize(window.innerWidth, window.innerHeight);
         });
-
-        window.addEventListener('beforeunload', () => { saveProgress(); stopEngineSound(); });
-
-        // İlk tıklamada sesi başlat
-        document.addEventListener('click', () => { initAudio(); }, { once: true });
-        document.addEventListener('touchstart', () => { initAudio(); }, { once: true });
+        window.addEventListener('beforeunload', () => saveProgress());
+        document.addEventListener('click', () => initAudio(), { once: true });
+        document.addEventListener('touchstart', () => initAudio(), { once: true });
 
         updateHUD();
         animate();
-        console.log('🏍️ Sürüş hazır! Geri vites: R, Korna: H tuşu / 📢 buton');
+        console.log('🏍️ Hazır! W=İleri, S=Fren/Geri, Shift=ÖnKaldırma, H=Korna, C=Kamera');
     </script>
 </body>
 </html>
