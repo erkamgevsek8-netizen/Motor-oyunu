@@ -30,7 +30,6 @@
             touch-action: manipulation;
         }
 
-        /* Oyun canvas */
         #game-canvas {
             position: fixed;
             top: 0;
@@ -47,7 +46,6 @@
             pointer-events: none;
         }
 
-        /* Hız göstergesi - sol alt */
         .speedometer {
             bottom: 40px;
             left: 25px;
@@ -75,7 +73,6 @@
             letter-spacing: 2px;
         }
 
-        /* Vites - hızın yanında */
         .gear-indicator {
             bottom: 55px;
             left: 145px;
@@ -87,10 +84,8 @@
             font-size: clamp(18px, 3vw, 26px);
             font-weight: 900;
             color: #ffd700;
-            text-shadow: 0 0 15px rgba(255, 215, 0, 0.5);
         }
 
-        /* Devir göstergesi - üst orta */
         .rpm-bar-container {
             top: 25px;
             left: 50%;
@@ -120,7 +115,6 @@
             letter-spacing: 2px;
         }
 
-        /* Para - sağ üst */
         .money-hud {
             top: 25px;
             right: 25px;
@@ -137,7 +131,6 @@
             color: #ffd700;
         }
 
-        /* Mesafe - para altı */
         .distance-hud {
             top: 75px;
             right: 25px;
@@ -151,7 +144,6 @@
             letter-spacing: 1px;
         }
 
-        /* Geri butonu */
         .back-btn {
             top: 20px;
             left: 20px;
@@ -172,7 +164,6 @@
             pointer-events: all;
         }
 
-        /* MOBİL KONTROLLER (sadece telefon modunda) */
         .mobile-controls {
             position: fixed;
             bottom: 30px;
@@ -204,7 +195,6 @@
             background: rgba(255, 77, 0, 0.4);
             border-color: #ff4d00;
             transform: scale(0.9);
-            box-shadow: 0 0 30px rgba(255, 77, 0, 0.5);
         }
 
         .ctrl-btn.gas {
@@ -215,7 +205,6 @@
             font-size: 32px;
         }
 
-        /* Ön kaldırma butonu */
         .wheelie-btn {
             position: fixed;
             right: 30px;
@@ -241,37 +230,9 @@
             transform: scale(0.9);
         }
 
-        /* Bilgisayar modunda mobil kontrolleri gizle */
         .pc-mode .mobile-controls,
         .pc-mode .wheelie-btn {
             display: none !important;
-        }
-
-        /* Hasar / uyarı */
-        .warning {
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            z-index: 15;
-            font-size: clamp(24px, 5vw, 40px);
-            font-weight: 900;
-            color: #ff0000;
-            text-shadow: 0 0 20px rgba(255, 0, 0, 0.8);
-            pointer-events: none;
-            opacity: 0;
-            transition: opacity 0.3s;
-        }
-
-        .warning.show {
-            opacity: 1;
-            animation: shake 0.5s ease-out;
-        }
-
-        @keyframes shake {
-            0%, 100% { transform: translate(-50%, -50%) rotate(0); }
-            25% { transform: translate(-50%, -50%) rotate(-5deg); }
-            75% { transform: translate(-50%, -50%) rotate(5deg); }
         }
 
         @media (max-width: 600px) {
@@ -305,42 +266,31 @@
 </head>
 <body>
 
-    <!-- Oyun Canvas -->
     <canvas id="game-canvas"></canvas>
 
-    <!-- Geri butonu -->
     <a href="index.html" class="back-btn hud" style="pointer-events:all;">←</a>
 
-    <!-- Devir göstergesi -->
     <div class="hud rpm-bar-container">
         <div class="rpm-bar-fill" id="rpm-fill"></div>
     </div>
     <div class="hud rpm-label">RPM</div>
 
-    <!-- Hız göstergesi -->
     <div class="hud speedometer">
         <div class="speed" id="speed-display">0</div>
         <div class="unit">KM/H</div>
     </div>
 
-    <!-- Vites -->
     <div class="hud gear-indicator" id="gear-display">N</div>
 
-    <!-- Para -->
     <div class="hud money-hud">
         <span>🪙</span>
         <span id="money-display">0</span>
     </div>
 
-    <!-- Mesafe -->
     <div class="hud distance-hud">
         <span>📏 <span id="distance-display">0</span> m</span>
     </div>
 
-    <!-- Uyarı -->
-    <div class="warning" id="warning"></div>
-
-    <!-- Mobil kontroller -->
     <div class="mobile-controls" id="mobile-controls">
         <button class="ctrl-btn" id="btn-brake" 
                 onmousedown="setInput('brake', true)" onmouseup="setInput('brake', false)"
@@ -358,7 +308,6 @@
         </button>
     </div>
 
-    <!-- Ön kaldırma butonu -->
     <button class="wheelie-btn" id="btn-wheelie"
             onmousedown="setInput('wheelie', true)" onmouseup="setInput('wheelie', false)"
             onmouseleave="setInput('wheelie', false)"
@@ -367,25 +316,177 @@
         ⬆️
     </button>
 
-    <script>
-        // ============ AYARLARI YÜKLE ============
+    <!-- Three.js -->
+    <script type="importmap">
+        {
+            "imports": {
+                "three": "https://unpkg.com/three@0.160.0/build/three.module.js"
+            }
+        }
+    </script>
+
+    <script type="module">
+        import * as THREE from 'three';
+
+        // ============ AYARLAR ============
         const settings = JSON.parse(localStorage.getItem('motorRiderSettings')) || {
             mode: 'phone',
             quality: 'medium',
-            sensitivity: 65,
-            masterVolume: 80,
-            engineVolume: 90
+            sensitivity: 65
         };
 
-        // Bilgisayar modu
         if (settings.mode === 'pc') {
             document.body.classList.add('pc-mode');
         }
 
+        // ============ THREE.JS KURULUM ============
+        const canvas = document.getElementById('game-canvas');
+        const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.shadowMap.enabled = true;
+
+        const scene = new THREE.Scene();
+        scene.background = new THREE.Color('#1a1a2e');
+        scene.fog = new THREE.Fog('#1a1a2e', 20, 100);
+
+        const camera = new THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight, 0.5, 200);
+        camera.position.set(0, 2.5, -3);
+        camera.lookAt(0, 1, 10);
+
+        // ============ IŞIK ============
+        scene.add(new THREE.AmbientLight('#404060', 0.5));
+        const sunLight = new THREE.DirectionalLight('#ffcc88', 1.5);
+        sunLight.position.set(10, 20, 5);
+        sunLight.castShadow = true;
+        sunLight.shadow.mapSize.width = 1024;
+        sunLight.shadow.mapSize.height = 1024;
+        scene.add(sunLight);
+
+        // ============ MOTOR MODELİ (Basit) ============
+        const bikeGroup = new THREE.Group();
+        
+        const bodyGeo = new THREE.BoxGeometry(0.4, 0.5, 1.8);
+        const bodyMat = new THREE.MeshStandardMaterial({ color: '#ff3300', roughness: 0.2, metalness: 0.8 });
+        const body = new THREE.Mesh(bodyGeo, bodyMat);
+        body.position.y = 0.6;
+        body.castShadow = true;
+        bikeGroup.add(body);
+
+        const seatGeo = new THREE.BoxGeometry(0.35, 0.15, 0.6);
+        const seatMat = new THREE.MeshStandardMaterial({ color: '#111', roughness: 0.8 });
+        const seat = new THREE.Mesh(seatGeo, seatMat);
+        seat.position.set(0, 0.9, -0.4);
+        bikeGroup.add(seat);
+
+        const frontWheel = new THREE.Mesh(
+            new THREE.TorusGeometry(0.3, 0.1, 8, 16),
+            new THREE.MeshStandardMaterial({ color: '#111', roughness: 0.9 })
+        );
+        frontWheel.position.set(0, 0.3, 1.0);
+        frontWheel.castShadow = true;
+        bikeGroup.add(frontWheel);
+
+        const rearWheel = new THREE.Mesh(
+            new THREE.TorusGeometry(0.3, 0.1, 8, 16),
+            new THREE.MeshStandardMaterial({ color: '#111', roughness: 0.9 })
+        );
+        rearWheel.position.set(0, 0.3, -0.8);
+        rearWheel.castShadow = true;
+        bikeGroup.add(rearWheel);
+
+        const handlebar = new THREE.Mesh(
+            new THREE.CylinderGeometry(0.04, 0.04, 0.6, 8),
+            new THREE.MeshStandardMaterial({ color: '#ccc', roughness: 0.2, metalness: 1 })
+        );
+        handlebar.rotation.z = Math.PI / 2;
+        handlebar.position.set(0, 1.15, 0.8);
+        bikeGroup.add(handlebar);
+
+        scene.add(bikeGroup);
+
+        // ============ SONSUZ YOL ============
+        const roadSegments = [];
+        const segmentLength = 20;
+        const totalSegments = 10;
+
+        const roadMat = new THREE.MeshStandardMaterial({ color: '#333333', roughness: 0.9 });
+        const lineMat = new THREE.MeshStandardMaterial({ color: '#ffff00', roughness: 0.5 });
+        const grassMat = new THREE.MeshStandardMaterial({ color: '#1a3a1a', roughness: 1 });
+        const dirtMat = new THREE.MeshStandardMaterial({ color: '#8B7355', roughness: 1 });
+
+        function createSegment(zPos) {
+            const group = new THREE.Group();
+
+            // Yol
+            const road = new THREE.Mesh(new THREE.PlaneGeometry(8, segmentLength), roadMat);
+            road.rotation.x = -Math.PI / 2;
+            road.position.set(0, 0, segmentLength / 2);
+            road.receiveShadow = true;
+            group.add(road);
+
+            // Orta çizgi
+            const line = new THREE.Mesh(new THREE.PlaneGeometry(0.3, segmentLength), lineMat);
+            line.rotation.x = -Math.PI / 2;
+            line.position.set(0, 0.01, segmentLength / 2);
+            group.add(line);
+
+            // Kenar çizgileri
+            for (let side = -1; side <= 1; side += 2) {
+                const edgeLine = new THREE.Mesh(new THREE.PlaneGeometry(0.2, segmentLength), 
+                    new THREE.MeshStandardMaterial({ color: '#ffffff', roughness: 0.5 }));
+                edgeLine.rotation.x = -Math.PI / 2;
+                edgeLine.position.set(side * 3.5, 0.01, segmentLength / 2);
+                group.add(edgeLine);
+            }
+
+            // Çimen
+            for (let side = -1; side <= 1; side += 2) {
+                const grass = new THREE.Mesh(new THREE.PlaneGeometry(10, segmentLength), grassMat);
+                grass.rotation.x = -Math.PI / 2;
+                grass.position.set(side * 9, -0.05, segmentLength / 2);
+                grass.receiveShadow = true;
+                group.add(grass);
+            }
+
+            // Ağaçlar (basit)
+            if (Math.random() > 0.4) {
+                for (let side = -1; side <= 1; side += 2) {
+                    if (Math.random() > 0.5) {
+                        const treeTrunk = new THREE.Mesh(
+                            new THREE.CylinderGeometry(0.3, 0.4, 3, 8),
+                            new THREE.MeshStandardMaterial({ color: '#5D3A1A' })
+                        );
+                        treeTrunk.position.set(side * (6 + Math.random() * 5), 1.5, Math.random() * segmentLength);
+                        treeTrunk.castShadow = true;
+                        group.add(treeTrunk);
+
+                        const treeTop = new THREE.Mesh(
+                            new THREE.ConeGeometry(1.5, 3, 8),
+                            new THREE.MeshStandardMaterial({ color: '#0d5e0d' })
+                        );
+                        treeTop.position.set(side * (6 + Math.random() * 5), 3.5, Math.random() * segmentLength);
+                        treeTop.castShadow = true;
+                        group.add(treeTop);
+                    }
+                }
+            }
+
+            group.position.z = zPos;
+            return group;
+        }
+
+        // Yol segmentlerini oluştur
+        for (let i = 0; i < totalSegments; i++) {
+            const seg = createSegment(-i * segmentLength);
+            roadSegments.push(seg);
+            scene.add(seg);
+        }
+
         // ============ PARA VE MESAFE ============
         let money = parseInt(localStorage.getItem('motorRiderMoney')) || 0;
-        let distance = parseFloat(localStorage.getItem('motorRiderDistance')) || 0;
-        let totalDistance = distance;
+        let totalDistance = parseFloat(localStorage.getItem('motorRiderDistance')) || 0;
+        let traveledSinceSave = 0;
 
         function updateMoneyDisplay() {
             document.getElementById('money-display').textContent = Math.floor(money).toLocaleString('tr-TR');
@@ -393,31 +494,32 @@
         }
         updateMoneyDisplay();
 
-        // ============ INPUT SİSTEMİ ============
-        const input = {
-            gas: false,
-            brake: false,
-            wheelie: false,
-            steerLeft: false,
-            steerRight: false
-        };
-
-        function setInput(name, value) {
-            input[name] = value;
+        function saveProgress() {
+            localStorage.setItem('motorRiderMoney', Math.floor(money));
+            localStorage.setItem('motorRiderDistance', totalDistance);
         }
 
-        // Klavye kontrolleri
+        // ============ INPUT ============
+        const input = {
+            gas: false, brake: false, wheelie: false,
+            steerLeft: false, steerRight: false
+        };
+
+        window.setInput = function(name, value) {
+            input[name] = value;
+        };
+
         const keys = {};
         window.addEventListener('keydown', (e) => {
             keys[e.key.toLowerCase()] = true;
-            updateKeyboardInput();
+            updateKeys();
         });
         window.addEventListener('keyup', (e) => {
             keys[e.key.toLowerCase()] = false;
-            updateKeyboardInput();
+            updateKeys();
         });
 
-        function updateKeyboardInput() {
+        function updateKeys() {
             input.gas = keys['w'] || keys['arrowup'] || false;
             input.brake = keys['s'] || keys['arrowdown'] || false;
             input.steerLeft = keys['a'] || keys['arrowleft'] || false;
@@ -425,165 +527,136 @@
             input.wheelie = keys['shift'] || false;
         }
 
-        // ============ MOTOR FİZİĞİ ============
+        // ============ FİZİK ============
         const bike = {
-            speed: 0,           // km/h
+            speed: 0,
             maxSpeed: 200,
-            acceleration: 0,
-            gear: 0,            // 0 = N, 1-6
+            gear: 0,
             rpm: 0,
-            maxRPM: 100,
             wheelieAngle: 0,
-            position: 0,        // yatay pozisyon
-            speedDecay: 0.3,
+            lateralPos: 0,
         };
 
-        // Vites oranları
-        const gearRatios = [0, 25, 50, 85, 120, 155, 200]; // Her vitesin max hızı
+        const gearRatios = [0, 30, 55, 85, 120, 155, 200];
 
-        function updatePhysics(deltaTime) {
-            const dt = Math.min(deltaTime, 0.1); // max 100ms
-
-            // Gaz - hızlanma
+        function updatePhysics(dt) {
             if (input.gas && bike.speed < bike.maxSpeed) {
-                const accelForce = 35 * (settings.sensitivity / 100);
-                bike.speed += accelForce * dt;
+                bike.speed += 35 * (settings.sensitivity / 100) * dt;
             }
-
-            // Fren
             if (input.brake && bike.speed > 0) {
                 bike.speed -= 60 * dt;
             }
-
-            // Sürtünme
             if (!input.gas && !input.brake) {
-                bike.speed -= bike.speedDecay * dt;
+                bike.speed -= 0.5 * dt;
             }
+            bike.speed = Math.max(0, Math.min(bike.maxSpeed, bike.speed));
 
-            // Hız sınırı
-            if (bike.speed < 0) bike.speed = 0;
-            if (bike.speed > bike.maxSpeed) bike.speed = bike.maxSpeed;
-
-            // Vites hesaplama
-            if (bike.speed < 1) {
-                bike.gear = 0; // N
-            } else {
+            // Vites
+            if (bike.speed < 1) bike.gear = 0;
+            else {
                 for (let g = 6; g >= 1; g--) {
-                    if (bike.speed >= gearRatios[g - 1]) {
-                        bike.gear = g;
-                        break;
-                    }
+                    if (bike.speed >= gearRatios[g-1]) { bike.gear = g; break; }
                 }
             }
 
-            // RPM hesaplama
-            if (bike.gear === 0) {
-                bike.rpm = input.gas ? 20 : 5;
-            } else {
-                const gearMax = gearRatios[bike.gear];
-                const gearMin = gearRatios[bike.gear - 1];
-                const ratio = (bike.speed - gearMin) / (gearMax - gearMin);
-                bike.rpm = 15 + ratio * 80;
-                if (input.gas) bike.rpm = Math.min(bike.rpm + 10, 100);
+            // RPM
+            if (bike.gear === 0) bike.rpm = input.gas ? 20 : 5;
+            else {
+                const ratio = (bike.speed - gearRatios[bike.gear-1]) / (gearRatios[bike.gear] - gearRatios[bike.gear-1]);
+                bike.rpm = 15 + ratio * 85;
             }
 
-            // Ön kaldırma
+            // Wheelie
             if (input.wheelie && bike.speed > 20 && bike.wheelieAngle < 45) {
                 bike.wheelieAngle += 40 * dt;
             } else if (!input.wheelie || bike.speed < 20) {
                 bike.wheelieAngle *= 0.85;
             }
-            if (bike.wheelieAngle > 45) bike.wheelieAngle = 45;
-            if (bike.wheelieAngle < 0) bike.wheelieAngle = 0;
+            bike.wheelieAngle = Math.max(0, Math.min(45, bike.wheelieAngle));
 
             // Direksiyon
-            if (input.steerLeft) bike.position -= 3 * dt * (settings.sensitivity / 100);
-            if (input.steerRight) bike.position += 3 * dt * (settings.sensitivity / 100);
-            bike.position *= 0.95; // merkeze dönme
+            if (input.steerLeft) bike.lateralPos -= 5 * dt;
+            if (input.steerRight) bike.lateralPos += 5 * dt;
+            bike.lateralPos *= 0.9;
+            bike.lateralPos = Math.max(-3.5, Math.min(3.5, bike.lateralPos));
 
-            // Mesafe ve para
-            const distThisFrame = (bike.speed / 3.6) * dt;
-            totalDistance += distThisFrame;
-            money += distThisFrame * 0.05; // metre başına 0.05 TL
+            // Mesafe & Para
+            const dist = (bike.speed / 3.6) * dt;
+            totalDistance += dist;
+            traveledSinceSave += dist;
+            money += dist * 0.05;
 
-            // Her 100 metrede bir kaydet
-            if (Math.floor(totalDistance) % 100 === 0 && Math.floor(totalDistance) > 0) {
+            if (traveledSinceSave > 50) {
                 saveProgress();
+                traveledSinceSave = 0;
             }
         }
 
-        function saveProgress() {
-            localStorage.setItem('motorRiderMoney', Math.floor(money));
-            localStorage.setItem('motorRiderDistance', totalDistance);
-        }
-
-        // ============ HUD GÜNCELLEME ============
+        // ============ HUD ============
         function updateHUD() {
-            // Hız
             document.getElementById('speed-display').textContent = Math.floor(bike.speed);
-
-            // Vites
             document.getElementById('gear-display').textContent = bike.gear === 0 ? 'N' : bike.gear;
-
-            // RPM bar
             document.getElementById('rpm-fill').style.width = bike.rpm + '%';
-            if (bike.rpm > 90) {
-                document.getElementById('rpm-fill').style.background = '#ff0000';
-            } else if (bike.rpm > 70) {
-                document.getElementById('rpm-fill').style.background = 'linear-gradient(90deg, #ffd700, #ff4d00)';
-            } else {
-                document.getElementById('rpm-fill').style.background = 'linear-gradient(90deg, #00ff88, #ffd700)';
-            }
-
-            // Para ve mesafe
             updateMoneyDisplay();
         }
 
-        // ============ BASİT YOL SİMÜLASYONU ============
-        // Şimdilik yol yok, sadece siyah arka plan
-        // İleride Three.js ile yol eklenecek
-
         // ============ OYUN DÖNGÜSÜ ============
-        let lastTime = performance.now();
+        const clock = new THREE.Clock();
+        let roadOffset = 0;
 
-        function gameLoop(currentTime) {
-            const deltaTime = (currentTime - lastTime) / 1000;
-            lastTime = currentTime;
+        function animate() {
+            requestAnimationFrame(animate);
 
-            updatePhysics(deltaTime);
+            const dt = Math.min(clock.getDelta(), 0.1);
+            updatePhysics(dt);
             updateHUD();
 
-            requestAnimationFrame(gameLoop);
+            // Yol hareketi
+            roadOffset += bike.speed * dt * 0.5;
+            
+            roadSegments.forEach((seg, i) => {
+                seg.position.z += bike.speed * dt * 0.5;
+                if (seg.position.z > segmentLength) {
+                    seg.position.z -= totalSegments * segmentLength;
+                    // Segmenti yeniden oluştur (yeni ağaçlar vs)
+                    scene.remove(seg);
+                    const newSeg = createSegment(seg.position.z);
+                    roadSegments[i] = newSeg;
+                    scene.add(newSeg);
+                }
+            });
+
+            // Motor pozisyonu
+            bikeGroup.position.x = bike.lateralPos;
+            bikeGroup.position.z = 0;
+            bikeGroup.rotation.x = -bike.wheelieAngle * (Math.PI / 180);
+            bikeGroup.position.y = bike.wheelieAngle * 0.01;
+
+            // Tekerlek dönüşü
+            frontWheel.rotation.x += bike.speed * dt * 0.5;
+            rearWheel.rotation.x += bike.speed * dt * 0.5;
+
+            // Kamera
+            camera.position.x = bike.lateralPos * 0.3;
+            camera.position.z = -3 - bike.speed * 0.01;
+            camera.position.y = 2.5 + bike.speed * 0.005;
+            camera.lookAt(bike.lateralPos * 0.5, 1, 5);
+
+            renderer.render(scene, camera);
         }
-
-        // ============ UYARI SİSTEMİ ============
-        function showWarning(text) {
-            const warning = document.getElementById('warning');
-            warning.textContent = text;
-            warning.classList.add('show');
-            setTimeout(() => warning.classList.remove('show'), 1500);
-        }
-
-        // Çok hızlı giderken uyarı
-        setInterval(() => {
-            if (bike.speed > 180) {
-                showWarning('⚠️ YÜKSEK HIZ!');
-            }
-        }, 5000);
-
-        // ============ SAYFA KAPANIRKEN KAYDET ============
-        window.addEventListener('beforeunload', () => {
-            saveProgress();
-        });
 
         // ============ BAŞLAT ============
-        console.log('🏍️ Oyun başladı!');
-        console.log('💰 Başlangıç parası:', Math.floor(money).toLocaleString('tr-TR'));
-        console.log('📏 Başlangıç mesafesi:', Math.floor(totalDistance), 'm');
-        console.log('📱 Mod:', settings.mode === 'pc' ? 'Bilgisayar' : 'Telefon');
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
 
+        window.addEventListener('beforeunload', () => saveProgress());
+
+        console.log('🏍️ Sürüş başladı!');
         updateHUD();
-        requestAnimationFrame(gameLoop);
+        animate();
     </script>
 </body>
 </html>
