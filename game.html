@@ -12,8 +12,8 @@
         #speed-val { font-size: 38px; font-weight: 900; color: #ff4d00; line-height: 1; }
         #speed-unit { font-size: 10px; color: #aaa; }
         #gear-val { background: rgba(255,215,0,0.15); border: 2px solid rgba(255,215,0,0.4); border-radius: 10px; padding: 5px 10px; font-size: 20px; font-weight: 900; color: #ffd700; }
-        #rpm-bar { width: 80px; height: 6px; background: rgba(255,255,255,0.1); border-radius: 3px; overflow: hidden; }
-        #rpm-fill { height: 100%; width: 0%; border-radius: 3px; background: #00ff88; }
+        #rpm-bar { width: 100px; height: 8px; background: rgba(255,255,255,0.1); border-radius: 4px; overflow: hidden; border: 1px solid rgba(255,255,255,0.2); }
+        #rpm-fill { height: 100%; width: 0%; border-radius: 4px; }
         #rpm-txt { font-size: 8px; color: #aaa; text-align: right; }
         #money-hud { position: fixed; top: 15px; right: 15px; z-index: 10; background: rgba(0,0,0,0.75); border: 2px solid rgba(255,215,0,0.4); border-radius: 20px; padding: 6px 14px; font-size: 14px; color: #ffd700; pointer-events: none; }
         #dist-hud { position: fixed; top: 55px; right: 15px; z-index: 10; background: rgba(0,0,0,0.6); border: 1px solid rgba(255,255,255,0.2); border-radius: 15px; padding: 4px 10px; font-size: 10px; color: #aaa; pointer-events: none; }
@@ -49,13 +49,11 @@
     <script src="https://cdn.jsdelivr.net/npm/three@0.150.0/build/three.min.js"></script>
     <script>
     window.onload = function() {
-        if (typeof THREE === 'undefined') { document.body.innerHTML = '<h1 style="color:white;text-align:center;margin-top:40vh;">❌ Yüklenemedi!</h1>'; return; }
+        if (typeof THREE === 'undefined') { document.body.innerHTML = '<h1 style="color:white;text-align:center;margin-top:40vh;">Yuklenemedi!</h1>'; return; }
 
-        var settings, bikeColor, equippedMods, exhaustType;
+        var settings, bikeColor;
         try { settings = JSON.parse(localStorage.getItem('motorRiderSettings')) || { mode: 'phone', sensitivity: 65, drawDistance: 100 }; } catch(e) { settings = { mode: 'phone', sensitivity: 65, drawDistance: 100 }; }
         try { bikeColor = localStorage.getItem('motorRiderBikeColor') || '#ff3300'; } catch(e) { bikeColor = '#ff3300'; }
-        try { equippedMods = JSON.parse(localStorage.getItem('motorRiderEquippedMods')) || { egzoz: 'exhaust_stock' }; } catch(e) { equippedMods = { egzoz: 'exhaust_stock' }; }
-        exhaustType = equippedMods['egzoz'] || 'exhaust_stock';
         if (settings.mode === 'pc') document.body.classList.add('pc-mode');
 
         var scene = new THREE.Scene();
@@ -75,46 +73,38 @@
         var sun = new THREE.DirectionalLight(0xfff8e7, 2);
         sun.position.set(30, 40, 20); scene.add(sun);
 
-        // ============ SES ============
+        // ============ SES (TEK EGZOZ PATLATMA) ============
         var audioCtx = null;
         function initAudio() { if (!audioCtx) try { audioCtx = new (window.AudioContext || window.webkitAudioContext)(); } catch(e) {} }
 
-        function playExhaustSound() {
+        function playExhaustPop() {
             initAudio(); if (!audioCtx) return;
             try {
                 var now = audioCtx.currentTime;
-                if (exhaustType === 'exhaust_sport') {
-                    var sr = audioCtx.sampleRate, buf = audioCtx.createBuffer(1, 0.4*sr, sr), d = buf.getChannelData(0);
-                    for (var i=0; i<d.length; i++) d[i] = ((Math.random()*2-1)*0.5 + Math.sin(2*Math.PI*70*(i/sr))*0.5) * Math.exp(-i/sr*10) * 0.7;
-                    var src = audioCtx.createBufferSource(); src.buffer = buf;
-                    var g = audioCtx.createGain(); g.gain.setValueAtTime(0.6, now); g.gain.exponentialRampToValueAtTime(0.01, now+0.4);
-                    src.connect(g); g.connect(audioCtx.destination); src.start();
-                } else if (exhaustType === 'exhaust_race') {
-                    var sr2 = audioCtx.sampleRate, buf2 = audioCtx.createBuffer(1, 0.3*sr2, sr2), d2 = buf2.getChannelData(0);
-                    for (var j=0; j<d2.length; j++) d2[j] = (Math.random()*2-1) * Math.exp(-j/sr2*15) * 0.5;
-                    var src2 = audioCtx.createBufferSource(); src2.buffer = buf2;
-                    var g2 = audioCtx.createGain(); g2.gain.setValueAtTime(0.5, now); g2.gain.exponentialRampToValueAtTime(0.01, now+0.3);
-                    src2.connect(g2); g2.connect(audioCtx.destination); src2.start();
-                    var osc = audioCtx.createOscillator(), g3 = audioCtx.createGain();
-                    osc.type = 'square'; osc.frequency.value = 180;
-                    g3.gain.setValueAtTime(0.12, now); g3.gain.exponentialRampToValueAtTime(0.01, now+0.2);
-                    osc.connect(g3); g3.connect(audioCtx.destination);
-                    osc.start(now); osc.stop(now+0.2);
-                } else {
-                    for (var k=0; k<3; k++) {
-                        var o = audioCtx.createOscillator(), gn = audioCtx.createGain();
-                        o.type = 'triangle'; o.frequency.value = 50 + k*15;
-                        gn.gain.setValueAtTime(0.05, now+k*0.1); gn.gain.exponentialRampToValueAtTime(0.001, now+k*0.1+0.08);
-                        o.connect(gn); gn.connect(audioCtx.destination);
-                        o.start(now+k*0.1); o.stop(now+k*0.1+0.08);
-                    }
+                var sr = audioCtx.sampleRate;
+                var buf = audioCtx.createBuffer(1, 0.4 * sr, sr);
+                var d = buf.getChannelData(0);
+                for (var i = 0; i < d.length; i++) {
+                    d[i] = ((Math.random() * 2 - 1) * 0.4 + Math.sin(2 * Math.PI * 60 * (i/sr)) * 0.6) * Math.exp(-i/sr * 8) * 0.7;
                 }
+                var src = audioCtx.createBufferSource(); src.buffer = buf;
+                var g = audioCtx.createGain();
+                g.gain.setValueAtTime(0.6, now);
+                g.gain.exponentialRampToValueAtTime(0.01, now + 0.4);
+                src.connect(g); g.connect(audioCtx.destination); src.start();
             } catch(e) {}
         }
 
         function playHorn() {
             initAudio(); if (!audioCtx) return;
-            try { var o = audioCtx.createOscillator(), g = audioCtx.createGain(); o.type = 'square'; o.frequency.value = 440; g.gain.setValueAtTime(0.25, audioCtx.currentTime); g.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime+0.35); o.connect(g); g.connect(audioCtx.destination); o.start(); o.stop(audioCtx.currentTime+0.35); } catch(e) {}
+            try {
+                var o = audioCtx.createOscillator(), g = audioCtx.createGain();
+                o.type = 'square'; o.frequency.value = 440;
+                g.gain.setValueAtTime(0.25, audioCtx.currentTime);
+                g.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.35);
+                o.connect(g); g.connect(audioCtx.destination);
+                o.start(); o.stop(audioCtx.currentTime + 0.35);
+            } catch(e) {}
         }
 
         // ============ MOTOR ============
@@ -142,23 +132,13 @@
 
         bike.add(new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.04, 0.65, 8), chrome).rotation.set(0,0,Math.PI/2).position.set(0, 1.2, 0.8));
 
-        // EGZOZ
+        // Basit egzoz
         var exGroup = new THREE.Group();
-        if (exhaustType === 'exhaust_sport') {
-            var dm = new THREE.MeshStandardMaterial({ color: 0x333333, roughness: 0.2, metalness: 0.9 });
-            exGroup.add(new THREE.Mesh(new THREE.CylinderGeometry(0.05, 0.06, 0.9, 8), dm).position.set(0.25, 0.25, -0.5).rotation.set(-0.15,0,0));
-            exGroup.add(new THREE.Mesh(new THREE.BoxGeometry(0.16, 0.1, 0.5), dm).position.set(0.25, 0.06, -1.0));
-            exGroup.add(new THREE.Mesh(new THREE.CylinderGeometry(0.06, 0.07, 0.12, 8), new THREE.MeshStandardMaterial({ color: 0xffd700, roughness: 0.1, metalness: 1 })).position.set(0.25, 0.06, -1.3));
-        } else if (exhaustType === 'exhaust_race') {
-            var cm = new THREE.MeshStandardMaterial({ color: 0x1a1a1a, roughness: 0.3, metalness: 0.4 });
-            exGroup.add(new THREE.Mesh(new THREE.CylinderGeometry(0.05, 0.06, 0.8, 8), cm).position.set(0.25, 0.25, -0.45).rotation.set(-0.1,0,0));
-            exGroup.add(new THREE.Mesh(new THREE.BoxGeometry(0.18, 0.12, 0.4), cm).position.set(0.25, 0.06, -0.9));
-            for (var s = -1; s <= 1; s += 2) exGroup.add(new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.05, 0.1, 8), new THREE.MeshStandardMaterial({ color: 0xff4400, roughness: 0.1, metalness: 1 })).position.set(0.25+s*0.05, 0.06, -1.15));
-        } else {
-            exGroup.add(new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.05, 0.9, 8), chrome).position.set(0.2, 0.25, -0.5).rotation.set(-0.2,0,0));
-            exGroup.add(new THREE.Mesh(new THREE.BoxGeometry(0.14, 0.09, 0.45), chrome).position.set(0.2, 0.06, -1.0));
-            exGroup.add(new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.05, 0.08, 8), bodyMat).position.set(0.2, 0.06, -1.25));
-        }
+        exGroup.add(new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.05, 0.9, 8), chrome).position.set(0.2, 0.25, -0.5).rotation.set(-0.2,0,0));
+        exGroup.add(new THREE.Mesh(new THREE.BoxGeometry(0.14, 0.09, 0.45), chrome).position.set(0.2, 0.06, -1.0));
+        var exTip = new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.06, 0.1, 8), new THREE.MeshStandardMaterial({ color: 0xff4400, roughness: 0.1, metalness: 1, emissive: 0x220000, emissiveIntensity: 0.3 }));
+        exTip.position.set(0.2, 0.06, -1.25);
+        exGroup.add(exTip);
         bike.add(exGroup);
 
         // Alev
@@ -167,14 +147,13 @@
         function burstFlame() {
             while(flameGroup.children.length>0) flameGroup.remove(flameGroup.children[0]);
             flames = [];
-            var count = exhaustType === 'exhaust_race' ? 30 : (exhaustType === 'exhaust_sport' ? 20 : 0);
-            for (var i=0; i<count; i++) {
+            for (var i=0; i<20; i++) {
                 var fl = new THREE.Mesh(new THREE.SphereGeometry(Math.random()*0.05+0.02, 3, 3), new THREE.MeshBasicMaterial({ color: Math.random()>0.5 ? 0xff4400 : 0xffaa00, transparent: true }));
-                fl.position.set(0.2+(Math.random()-0.5)*0.12, 0.06, -1.3);
+                fl.position.set(0.2+(Math.random()-0.5)*0.1, 0.06, -1.3);
                 flames.push({ mesh: fl, vel: new THREE.Vector3((Math.random()-0.5)*2, Math.random()*3+0.5, -Math.random()*5-2), life: 0.4+Math.random()*0.3, age: 0 });
                 flameGroup.add(fl);
             }
-            if (count>0) flameGroup.visible = true;
+            flameGroup.visible = true;
         }
         function updateFlames(dt) {
             for (var i=flames.length-1; i>=0; i--) {
@@ -187,10 +166,15 @@
         }
         scene.add(bike);
 
-        // ============ YOL (SADECE AĞAÇ, BİNA YOK) ============
+        // ============ YOL + BİNALAR ============
         var roadGroup = new THREE.Group(); scene.add(roadGroup);
         var roadMat = new THREE.MeshStandardMaterial({ color: 0x444444, roughness: 0.8 });
         var grassMat = new THREE.MeshStandardMaterial({ color: 0x2d5a1e, roughness: 0.9 });
+        var bMats = [
+            new THREE.MeshStandardMaterial({ color: 0xc4a882, roughness: 0.6 }),
+            new THREE.MeshStandardMaterial({ color: 0xd5c4a1, roughness: 0.5 }),
+            new THREE.MeshStandardMaterial({ color: 0xb8c5d0, roughness: 0.4, metalness: 0.3 })
+        ];
         var segments = [];
         var SEG = 28, COUNT = 5;
 
@@ -205,14 +189,24 @@
             for (var s=-1; s<=1; s+=2) {
                 var edge = new THREE.Mesh(new THREE.PlaneGeometry(0.2, SEG), new THREE.MeshStandardMaterial({ color: 0xffffff }));
                 edge.rotation.x = -Math.PI/2; edge.position.set(s*3.5, 0.02, SEG/2); g.add(edge);
-                var grass = new THREE.Mesh(new THREE.PlaneGeometry(10, SEG), grassMat);
+                var grass = new THREE.Mesh(new THREE.PlaneGeometry(12, SEG), grassMat);
                 grass.rotation.x = -Math.PI/2; grass.position.set(s*10, -0.02, SEG/2); g.add(grass);
+
+                // Ağaçlar
                 for (var t=0; t<2; t++) {
                     var tree = new THREE.Group();
                     var th = 2+Math.random()*2;
                     tree.add(new THREE.Mesh(new THREE.CylinderGeometry(0.1, 0.15, th, 5), new THREE.MeshStandardMaterial({ color: 0x8B5E3C })).position.set(0, th/2, 0));
                     tree.add(new THREE.Mesh(new THREE.ConeGeometry(1, 3, 6), new THREE.MeshStandardMaterial({ color: 0x1a5c1a })).position.set(0, th+1, 0));
-                    tree.position.set(s*(7+Math.random()*5), 0, Math.random()*SEG); g.add(tree);
+                    tree.position.set(s*(7+Math.random()*6), 0, Math.random()*SEG); g.add(tree);
+                }
+
+                // Binalar (penceresiz, basit)
+                if (Math.random() > 0.4) {
+                    var bw = 3+Math.random()*5, bh = 5+Math.random()*20, bd = 3+Math.random()*6;
+                    var b = new THREE.Mesh(new THREE.BoxGeometry(bw, bh, bd), bMats[Math.floor(Math.random()*3)]);
+                    b.position.set(s*(8+bw/2+Math.random()*3), bh/2, Math.random()*(SEG-bd));
+                    b.castShadow = true; g.add(b);
                 }
             }
             g.position.z = zPos; return g;
@@ -253,7 +247,7 @@
 
         window.switchCam = function() {
             camMode = camMode === 1 ? 2 : (camMode === 2 ? 3 : 1);
-            document.getElementById('cam-label').textContent = {1:'ARKA', 2:'ÖN', 3:'ÜST'}[camMode];
+            document.getElementById('cam-label').textContent = {1:'ARKA', 2:'ON', 3:'UST'}[camMode];
         };
 
         function updateHUD() {
@@ -298,10 +292,11 @@
             money += d * 0.05;
             if (saveCounter > 50) { save(); saveCounter = 0; }
 
-            if (rpm > 0.5 && Math.abs(speed) > 30 && performance.now() - lastExhaust > 500) {
-                playExhaustSound();
+            // Tek egzoz patlatma
+            if (rpm > 0.5 && Math.abs(speed) > 30 && performance.now() - lastExhaust > 400) {
+                playExhaustPop();
                 lastExhaust = performance.now();
-                if (exhaustType !== 'exhaust_stock') burstFlame();
+                burstFlame();
             }
         }
 
