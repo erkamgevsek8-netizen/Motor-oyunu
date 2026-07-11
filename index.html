@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Motor Rider - Ana Menü</title>
+    <link rel="stylesheet" href="css/style.css">
+    <style>
+        /* Ana menüye özel ek stiller */
+        .menu-container {
+            position: relative;
+            width: 100%;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        #three-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+        }
+
+        .overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(
+                180deg,
+                transparent 50%,
+                rgba(0, 0, 0, 0.7) 80%,
+                rgba(0, 0, 0, 0.95) 100%
+            );
+            z-index: 2;
+            pointer-events: none;
+        }
+
+        .game-title {
+            position: fixed;
+            top: 40px;
+            left: 30px;
+            z-index: 10;
+            pointer-events: none;
+        }
+
+        .game-title h1 {
+            font-size: clamp(36px, 7vw, 64px);
+            font-weight: 900;
+            color: #ffffff;
+            text-transform: uppercase;
+            letter-spacing: 4px;
+            line-height: 1;
+            text-shadow: 0 0 40px rgba(255, 77, 0, 0.6), 0 4px 8px rgba(0,0,0,0.8);
+        }
+
+        .game-title .subtitle {
+            font-size: clamp(14px, 2.5vw, 20px);
+            color: #ff4d00;
+            letter-spacing: 8px;
+            font-weight: 300;
+            margin-top: 5px;
+            text-shadow: 0 0 20px rgba(255, 77, 0, 0.8);
+        }
+
+        .menu-buttons {
+            position: fixed;
+            right: 30px;
+            bottom: 60px;
+            z-index: 10;
+            display: flex;
+            flex-direction: column-reverse;
+            align-items: flex-end;
+            gap: 12px;
+        }
+
+        .menu-btn {
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            gap: 15px;
+            background: rgba(20, 20, 20, 0.85);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 2px solid rgba(255, 77, 0, 0.4);
+            border-radius: 50px;
+            padding: 14px 28px;
+            cursor: pointer;
+            transition: all 0.35s cubic-bezier(0.25, 0.8, 0.25, 1.2);
+            color: #ffffff;
+            font-size: clamp(15px, 2.5vw, 19px);
+            font-weight: 700;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            min-width: 160px;
+            position: relative;
+            overflow: hidden;
+            text-decoration: none;
+        }
+
+        .menu-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 77, 0, 0.2), transparent);
+            transition: left 0.5s;
+        }
+
+        .menu-btn:hover::before,
+        .menu-btn:active::before {
+            left: 100%;
+        }
+
+        .menu-btn:hover {
+            background: rgba(40, 40, 40, 0.9);
+            border-color: #ff4d00;
+            transform: translateX(-8px) scale(1.03);
+            box-shadow: 0 10px 40px rgba(255, 77, 0, 0.3), 0 0 80px rgba(255, 77, 0, 0.1);
+        }
+
+        .menu-btn:active {
+            transform: translateX(-4px) scale(0.97);
+            transition: all 0.1s;
+        }
+
+        .menu-btn .icon {
+            font-size: clamp(20px, 3vw, 26px);
+            width: 45px;
+            height: 45px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(255, 77, 0, 0.2);
+            border-radius: 50%;
+            flex-shrink: 0;
+        }
+
+        .menu-btn.main-btn {
+            padding: 18px 35px;
+            border-color: #ff4d00;
+            box-shadow: 0 0 30px rgba(255, 77, 0, 0.4);
+            animation: pulse-btn 2.5s infinite;
+        }
+
+        @keyframes pulse-btn {
+            0%, 100% { box-shadow: 0 0 30px rgba(255, 77, 0, 0.4); }
+            50% { box-shadow: 0 0 60px rgba(255, 77, 0, 0.7), 0 0 100px rgba(255, 136, 0, 0.3); }
+        }
+
+        .menu-btn.main-btn .icon {
+            background: #ff4d00;
+            color: #000;
+            font-size: 28px;
+        }
+
+        .speed-display {
+            position: fixed;
+            left: 30px;
+            bottom: 60px;
+            z-index: 10;
+            pointer-events: none;
+            opacity: 0.4;
+        }
+
+        .speed-display .speed-number {
+            font-size: clamp(50px, 10vw, 90px);
+            font-weight: 900;
+            color: #ff4d00;
+            line-height: 1;
+            text-shadow: 0 0 30px rgba(255, 77, 0, 0.5);
+        }
+
+        .speed-display .speed-unit {
+            font-size: clamp(14px, 2vw, 18px);
+            color: #cccccc;
+            letter-spacing: 2px;
+        }
+
+        .version {
+            position: fixed;
+            left: 30px;
+            top: calc(40px + clamp(80px, 15vw, 130px));
+            z-index: 10;
+            pointer-events: none;
+            color: rgba(255, 255, 255, 0.3);
+            font-size: 12px;
+            letter-spacing: 3px;
+        }
+
+        @media (max-width: 600px) {
+            .menu-buttons {
+                right: 15px;
+                bottom: 40px;
+                gap: 8px;
+            }
+            .menu-btn {
+                padding: 12px 22px;
+                min-width: 130px;
+                font-size: 14px;
+            }
+            .menu-btn.main-btn {
+                padding: 15px 28px;
+            }
+            .game-title {
+                top: 25px;
+                left: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="menu-container">
+        <canvas id="three-canvas"></canvas>
+        <div class="overlay"></div>
+
+        <div class="game-title">
+            <h1>MOTOR<br>RIDER</h1>
+            <div class="subtitle">HIGHWAY LEGENDS</div>
+        </div>
+
+        <div class="version">v1.0 BETA</div>
+
+        <div class="speed-display">
+            <div class="speed-number">220</div>
+            <div class="speed-unit">KM/H MAX</div>
+        </div>
+
+        <div class="menu-buttons">
+            <a href="game.html" class="menu-btn main-btn">
+                <span class="icon">▶</span>
+                BAŞLA
+            </a>
+            <a href="garage.html" class="menu-btn">
+                <span class="icon">🔧</span>
+                GARAJ
+            </a>
+            <a href="settings.html" class="menu-btn">
+                <span class="icon">⚙️</span>
+                AYARLAR
+            </a>
+        </div>
+    </div>
+
+    <script type="importmap">
+        {
+            "imports": {
+                "three": "https://unpkg.com/three@0.160.0/build/three.module.js"
+            }
+        }
+    </script>
+
+    <script type="module" src="js/main.js"></script>
+</body>
+</html>
