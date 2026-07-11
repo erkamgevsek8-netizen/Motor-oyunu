@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Motor Rider</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: sans-serif; background: #000; overflow: hidden; height: 100vh; width: 100vw; user-select: none; }
+        #game-canvas { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 1; }
+        .hud { position: fixed; z-index: 10; color: #fff; pointer-events: none; }
+    </style>
+</head>
+<body>
+
+    <canvas id="game-canvas"></canvas>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+
+    <script>
+        // --- OYUN KURULUMU ---
+        const canvas = document.getElementById('game-canvas');
+        const renderer = new THREE.WebGLRenderer({ canvas: canvas, antialias: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setPixelRatio(window.devicePixelRatio);
+
+        const scene = new THREE.Scene();
+        scene.background = new THREE.Color('#87CEEB');
+
+        // Kamera mesafesi 2000'e çıkarıldı (Siyah ekran hatasını giderir)
+        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 2000);
+        camera.position.set(0, 3.5, -6);
+
+        // Işıklandırma
+        scene.add(new THREE.AmbientLight(0xffffff, 1.2));
+        const sun = new THREE.DirectionalLight(0xffffff, 1.5);
+        sun.position.set(10, 20, 10);
+        scene.add(sun);
+
+        // --- BASİT BİR OYUNCU MOTORU (TEST) ---
+        const geometry = new THREE.BoxGeometry(1, 1, 2);
+        const material = new THREE.MeshStandardMaterial({ color: 0xff3300 });
+        const bike = new THREE.Mesh(geometry, material);
+        scene.add(bike);
+
+        // --- RENDER DÖNGÜSÜ ---
+        function animate() {
+            requestAnimationFrame(animate);
+            bike.rotation.y += 0.01; // Motorun çalıştığını anlaman için döner
+            renderer.render(scene, camera);
+        }
+
+        // Başlatma kontrolü
+        if (typeof THREE !== 'undefined') {
+            animate();
+        } else {
+            alert("Kütüphane yüklenemedi! İnternetini kontrol et.");
+        }
+
+        window.addEventListener('resize', () => {
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+        });
+    </script>
+</body>
+</html>
