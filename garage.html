@@ -5,14 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <title>Motor Rider - Garaj</title>
     <style>
-        :root { --accent: #ff4d00; --gold: #ffd700; --text: #fff; }
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
-            font-family: 'Segoe UI', 'Arial', sans-serif;
-            background: #0a0a0a; overflow-x: hidden; overflow-y: auto;
-            min-height: 100vh; color: var(--text);
+            font-family: 'Segoe UI', sans-serif; background: #0a0a0a;
+            overflow-x: hidden; overflow-y: auto; min-height: 100vh; color: #fff;
             user-select: none; -webkit-user-select: none;
-            -webkit-tap-highlight-color: transparent;
         }
         #garage-canvas { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 1; }
         .overlay {
@@ -22,68 +19,50 @@
         }
         .back-btn {
             position: fixed; top: 20px; left: 20px; z-index: 20;
-            background: rgba(0,0,0,0.8); backdrop-filter: blur(10px);
-            border: 2px solid rgba(255,255,255,0.2); border-radius: 50%;
-            width: 45px; height: 45px; display: flex; align-items: center; justify-content: center;
-            cursor: pointer; color: #fff; font-size: 20px; text-decoration: none;
+            background: rgba(0,0,0,0.8); border: 2px solid rgba(255,255,255,0.2);
+            border-radius: 50%; width: 45px; height: 45px; display: flex;
+            align-items: center; justify-content: center; cursor: pointer;
+            color: #fff; font-size: 20px; text-decoration: none;
         }
-        .back-btn:hover { border-color: #ff4d00; }
         .money-bar {
             position: fixed; top: 20px; right: 20px; z-index: 20;
-            background: rgba(0,0,0,0.8); backdrop-filter: blur(15px);
-            border: 2px solid rgba(255,215,0,0.4); border-radius: 30px;
-            padding: 12px 22px; display: flex; align-items: center; gap: 10px;
-            color: #ffd700; font-weight: 700; font-size: 18px;
+            background: rgba(0,0,0,0.8); border: 2px solid rgba(255,215,0,0.4);
+            border-radius: 30px; padding: 12px 22px; display: flex;
+            align-items: center; gap: 10px; color: #ffd700; font-weight: 700; font-size: 18px;
         }
         .garage-title {
             position: fixed; top: 25px; left: 50%; transform: translateX(-50%); z-index: 20;
-            pointer-events: none; font-size: 30px; font-weight: 900;
-            letter-spacing: 3px; text-transform: uppercase;
+            font-size: 30px; font-weight: 900; letter-spacing: 3px;
             text-shadow: 0 0 25px rgba(255,77,0,0.5);
         }
         .mod-panel {
             position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%);
-            z-index: 20; display: flex; gap: 10px; flex-wrap: wrap;
+            z-index: 20; display: flex; gap: 8px; flex-wrap: wrap;
             justify-content: center; max-width: 95vw;
         }
         .mod-btn {
-            background: rgba(0,0,0,0.8); backdrop-filter: blur(15px);
-            border: 2px solid rgba(255,255,255,0.2); border-radius: 16px;
-            padding: 12px 14px; cursor: pointer; transition: all 0.3s;
-            color: #fff; font-size: 13px; font-weight: 700;
-            letter-spacing: 1px; text-align: center; min-width: 70px;
-            display: flex; flex-direction: column; align-items: center; gap: 5px;
+            background: rgba(0,0,0,0.8); border: 2px solid rgba(255,255,255,0.2);
+            border-radius: 14px; padding: 10px 12px; cursor: pointer; transition: all 0.3s;
+            color: #fff; font-size: 12px; font-weight: 700; text-align: center;
+            min-width: 65px; display: flex; flex-direction: column; align-items: center; gap: 4px;
         }
         .mod-btn:hover { border-color: #ff4d00; transform: translateY(-3px); }
         .mod-btn:active { transform: scale(0.93); }
-        .mod-btn .mod-icon { font-size: 26px; }
+        .mod-btn .mod-icon { font-size: 24px; }
         .mod-btn .mod-price { font-size: 10px; color: #ffd700; }
         .mod-btn.owned { border-color: #00ff88 !important; }
         .mod-btn.owned .mod-price { color: #00ff88; }
-        .mod-btn.equipped { border-color: #ffd700 !important; box-shadow: 0 0 20px rgba(255,215,0,0.4); animation: glow 2s infinite; }
-        @keyframes glow { 0%,100%{box-shadow:0 0 10px rgba(255,215,0,0.3);} 50%{box-shadow:0 0 30px rgba(255,215,0,0.6);} }
+        .mod-btn.equipped { border-color: #ffd700 !important; box-shadow: 0 0 15px rgba(255,215,0,0.4); }
         .exhaust-btn {
-            position: fixed; bottom: 155px; left: 50%; transform: translateX(-50%); z-index: 20;
+            position: fixed; bottom: 150px; left: 50%; transform: translateX(-50%); z-index: 20;
             background: rgba(255,77,0,0.3); border: 2px solid #ff4d00; border-radius: 40px;
             padding: 14px 30px; cursor: pointer; color: #fff; font-size: 16px; font-weight: 900;
-            letter-spacing: 2px; text-transform: uppercase;
+            letter-spacing: 2px;
         }
         .exhaust-btn:hover { background: rgba(255,77,0,0.5); }
-        .flame-particle {
-            position: fixed; pointer-events: none; z-index: 5;
-            animation: flameBurst 0.8s ease-out forwards;
-        }
-        @keyframes flameBurst { 0%{transform:translate(0,0) scale(1);opacity:1;} 100%{transform:translate(var(--dx),var(--dy)) scale(0);opacity:0;} }
-        @media (max-width:600px) {
-            .mod-panel { gap: 6px; bottom: 15px; }
-            .mod-btn { padding: 8px 10px; min-width: 55px; font-size: 11px; border-radius: 12px; }
-            .mod-btn .mod-icon { font-size: 20px; }
-            .exhaust-btn { bottom: 130px; padding: 10px 20px; font-size: 13px; }
-        }
     </style>
 </head>
 <body>
-
     <canvas id="garage-canvas"></canvas>
     <div class="overlay"></div>
     <a href="index.html" class="back-btn">←</a>
@@ -107,8 +86,6 @@
         renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
         renderer.setSize(window.innerWidth, window.innerHeight);
         renderer.shadowMap.enabled = true;
-        renderer.toneMapping = THREE.ACESFilmicToneMapping;
-        renderer.toneMappingExposure = 1.2;
 
         const scene = new THREE.Scene();
         scene.background = new THREE.Color('#111111');
@@ -118,164 +95,119 @@
         camera.position.set(2.5, 1.8, 4.5);
         camera.lookAt(0, 0.8, 0);
 
-        const keyLight = new THREE.DirectionalLight('#ffffff', 4);
-        keyLight.position.set(5, 6, 3);
-        keyLight.castShadow = true;
-        keyLight.shadow.mapSize.width = 2048;
-        keyLight.shadow.mapSize.height = 2048;
-        scene.add(keyLight);
+        scene.add(new THREE.DirectionalLight('#ffffff', 4).position.set(5, 6, 3));
         scene.add(new THREE.DirectionalLight('#4488cc', 2).position.set(-3, 2, -2));
         scene.add(new THREE.DirectionalLight('#ff4400', 2.5).position.set(0, 0.5, -4));
         scene.add(new THREE.AmbientLight('#222233', 0.6));
 
-        const floor = new THREE.Mesh(new THREE.CircleGeometry(6, 48),
-            new THREE.MeshStandardMaterial({ color: '#1a1a1a', roughness: 0.3, metalness: 0.5 }));
+        const floor = new THREE.Mesh(new THREE.CircleGeometry(6, 48), new THREE.MeshStandardMaterial({ color: '#1a1a1a', roughness: 0.3, metalness: 0.5 }));
         floor.rotation.x = -Math.PI / 2; floor.position.y = -1.5; floor.receiveShadow = true; scene.add(floor);
 
-        const platform = new THREE.Mesh(new THREE.CylinderGeometry(1.3, 1.5, 0.08, 32),
-            new THREE.MeshStandardMaterial({ color: '#2a2a2a', roughness: 0.2, metalness: 0.7 }));
-        platform.position.y = -1.46; platform.receiveShadow = true; scene.add(platform);
-
-        // ============ MOTOR PARÇALARI ============
+        // ============ MOTOR ============
         const bikeGroup = new THREE.Group();
-        const bodyParts = {};
-        const exhaustParts = {};
+        const chromeMat = new THREE.MeshStandardMaterial({ color: '#ccc', roughness: 0.1, metalness: 1 });
+        const tireMat = new THREE.MeshStandardMaterial({ color: '#111', roughness: 0.9 });
+        const seatMat = new THREE.MeshStandardMaterial({ color: '#111', roughness: 0.8 });
 
-        const chromeMat = new THREE.MeshStandardMaterial({ color: '#cccccc', roughness: 0.1, metalness: 1.0 });
-        const tireMat = new THREE.MeshStandardMaterial({ color: '#111111', roughness: 0.9, metalness: 0.05 });
-        const seatMat = new THREE.MeshStandardMaterial({ color: '#1a1a1a', roughness: 0.8, metalness: 0.1 });
-
-        const currentColor = localStorage.getItem('motorRiderBikeColor') || '#ff3300';
+        let currentColor = localStorage.getItem('motorRiderBikeColor') || '#ff3300';
         let bodyMat = new THREE.MeshStandardMaterial({ color: currentColor, roughness: 0.15, metalness: 0.8 });
 
-        // Şasi
+        // Ana parçalar (renk değişecekler)
         const frame = new THREE.Mesh(new THREE.BoxGeometry(0.25, 0.25, 1.6), bodyMat);
-        frame.position.y = 0.75; frame.castShadow = true; bodyParts['frame'] = frame; bikeGroup.add(frame);
+        frame.position.y = 0.75; frame.castShadow = true; bikeGroup.add(frame);
 
-        // Motor
+        const tank = new THREE.Mesh(new THREE.CylinderGeometry(0.22, 0.25, 0.7, 16), bodyMat);
+        tank.rotation.x = Math.PI / 2; tank.position.set(0, 0.9, 0.3); tank.castShadow = true; bikeGroup.add(tank);
+
+        // Sabit parçalar
         const engine = new THREE.Mesh(new THREE.BoxGeometry(0.38, 0.42, 0.55), chromeMat);
         engine.position.set(0, 0.5, -0.05); engine.castShadow = true; bikeGroup.add(engine);
 
-        // Depo
-        const tank = new THREE.Mesh(new THREE.CylinderGeometry(0.22, 0.25, 0.7, 16), bodyMat);
-        tank.rotation.x = Math.PI / 2; tank.position.set(0, 0.9, 0.3); tank.castShadow = true;
-        bodyParts['tank'] = tank; bikeGroup.add(tank);
-
-        // Sele
         const seat = new THREE.Mesh(new THREE.BoxGeometry(0.28, 0.15, 0.6), seatMat);
-        seat.position.set(0, 0.95, -0.5); seat.castShadow = true; bikeGroup.add(seat);
+        seat.position.set(0, 0.95, -0.5); bikeGroup.add(seat);
 
-        // Far
         const headlight = new THREE.Mesh(new THREE.CylinderGeometry(0.12, 0.12, 0.08, 16),
-            new THREE.MeshStandardMaterial({ color: '#fff', roughness: 0.1, emissive: '#fff', emissiveIntensity: 0.9 }));
+            new THREE.MeshStandardMaterial({ color: '#fff', emissive: '#fff', emissiveIntensity: 0.9 }));
         headlight.rotation.x = Math.PI / 2; headlight.position.set(0, 0.9, 1.05); bikeGroup.add(headlight);
 
-        // Ön tekerlek
-        const frontWheelGroup = new THREE.Group();
-        frontWheelGroup.position.set(0, 0.15, 0.95);
-        frontWheelGroup.add(new THREE.Mesh(new THREE.TorusGeometry(0.28, 0.08, 16, 32), tireMat));
+        // Tekerlekler
+        const frontWheel = new THREE.Group();
+        frontWheel.position.set(0, 0.15, 0.95);
+        frontWheel.add(new THREE.Mesh(new THREE.TorusGeometry(0.28, 0.08, 16, 32), tireMat));
         const fRim = new THREE.Mesh(new THREE.CylinderGeometry(0.22, 0.22, 0.1, 24), chromeMat);
-        fRim.rotation.x = Math.PI / 2; frontWheelGroup.add(fRim);
-        bodyParts['frontRim'] = fRim;
-        bikeGroup.add(frontWheelGroup);
+        fRim.rotation.x = Math.PI / 2; frontWheel.add(fRim); bikeGroup.add(frontWheel);
 
-        // Arka tekerlek
-        const rearWheelGroup = new THREE.Group();
-        rearWheelGroup.position.set(0, 0.15, -0.8);
-        rearWheelGroup.add(new THREE.Mesh(new THREE.TorusGeometry(0.28, 0.08, 16, 32), tireMat));
+        const rearWheel = new THREE.Group();
+        rearWheel.position.set(0, 0.15, -0.8);
+        rearWheel.add(new THREE.Mesh(new THREE.TorusGeometry(0.28, 0.08, 16, 32), tireMat));
         const rRim = new THREE.Mesh(new THREE.CylinderGeometry(0.22, 0.22, 0.1, 24), chromeMat);
-        rRim.rotation.x = Math.PI / 2; rearWheelGroup.add(rRim);
-        bodyParts['rearRim'] = rRim;
-        bikeGroup.add(rearWheelGroup);
+        rRim.rotation.x = Math.PI / 2; rearWheel.add(rRim); bikeGroup.add(rearWheel);
 
         // Gidon
         const hbar = new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.04, 0.7, 8), chromeMat);
         hbar.rotation.z = Math.PI / 2; hbar.position.set(0, 1.3, 0.85); bikeGroup.add(hbar);
 
-        // ============ EGZOZ GRUBU (değiştirilebilir) ============
+        // EGZOZ GRUBU (ayrı grup, değişecek)
         const exhaustGroup = new THREE.Group();
-        exhaustGroup.position.set(0, 0, 0);
+        bikeGroup.add(exhaustGroup);
 
-        // Varsayılan egzoz (stok)
-        function createStockExhaust() {
-            exhaustGroup.clear();
-            const pipe = new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.05, 0.9, 8), chromeMat);
-            pipe.position.set(0.2, 0.25, -0.5); pipe.rotation.x = -0.2;
-            exhaustGroup.add(pipe);
-            const box = new THREE.Mesh(new THREE.BoxGeometry(0.14, 0.09, 0.45), chromeMat);
-            box.position.set(0.2, 0.06, -1.0);
-            exhaustGroup.add(box);
-            const tip = new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.05, 0.08, 8), bodyMat);
-            tip.position.set(0.2, 0.06, -1.25);
-            exhaustParts['tip'] = tip;
-            exhaustGroup.add(tip);
-        }
-
-        // Sport egzoz (daha büyük, krom uç)
-        function createSportExhaust() {
-            exhaustGroup.clear();
-            const pipe = new THREE.Mesh(new THREE.CylinderGeometry(0.05, 0.06, 0.9, 8),
-                new THREE.MeshStandardMaterial({ color: '#444', roughness: 0.3, metalness: 0.9 }));
-            pipe.position.set(0.25, 0.25, -0.5); pipe.rotation.x = -0.15;
-            exhaustGroup.add(pipe);
-            const box = new THREE.Mesh(new THREE.BoxGeometry(0.16, 0.1, 0.5),
-                new THREE.MeshStandardMaterial({ color: '#333', roughness: 0.2, metalness: 0.9 }));
-            box.position.set(0.25, 0.06, -1.0);
-            exhaustGroup.add(box);
-            const tip = new THREE.Mesh(new THREE.CylinderGeometry(0.06, 0.07, 0.12, 8),
-                new THREE.MeshStandardMaterial({ color: '#ffd700', roughness: 0.1, metalness: 1, emissive: '#331100', emissiveIntensity: 0.3 }));
-            tip.position.set(0.25, 0.06, -1.3);
-            exhaustParts['tip'] = tip;
-            exhaustGroup.add(tip);
-        }
-
-        // Yarış egzoz (çift çıkışlı, karbon görünüm)
-        function createRaceExhaust() {
-            exhaustGroup.clear();
-            const pipe = new THREE.Mesh(new THREE.CylinderGeometry(0.05, 0.06, 0.8, 8),
-                new THREE.MeshStandardMaterial({ color: '#1a1a1a', roughness: 0.2, metalness: 0.6 }));
-            pipe.position.set(0.25, 0.25, -0.45); pipe.rotation.x = -0.1;
-            exhaustGroup.add(pipe);
-            const box = new THREE.Mesh(new THREE.BoxGeometry(0.18, 0.12, 0.4),
-                new THREE.MeshStandardMaterial({ color: '#1a1a1a', roughness: 0.3, metalness: 0.4 }));
-            box.position.set(0.25, 0.06, -0.9);
-            exhaustGroup.add(box);
-            // Çift çıkış
-            for (let s = -1; s <= 1; s += 2) {
-                const tip = new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.05, 0.1, 8),
-                    new THREE.MeshStandardMaterial({ color: '#ff4400', roughness: 0.1, metalness: 1, emissive: '#220000', emissiveIntensity: 0.5 }));
-                tip.position.set(0.25 + s * 0.05, 0.06, -1.15);
-                exhaustParts['tip' + s] = tip;
-                exhaustGroup.add(tip);
+        function clearExhaust() {
+            while (exhaustGroup.children.length > 0) {
+                exhaustGroup.remove(exhaustGroup.children[0]);
             }
         }
 
-        bikeGroup.add(exhaustGroup);
+        function createStockExhaust() {
+            clearExhaust();
+            const p = new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.05, 0.9, 8), chromeMat);
+            p.position.set(0.2, 0.25, -0.5); p.rotation.x = -0.2; exhaustGroup.add(p);
+            const b = new THREE.Mesh(new THREE.BoxGeometry(0.14, 0.09, 0.45), chromeMat);
+            b.position.set(0.2, 0.06, -1.0); exhaustGroup.add(b);
+            const t = new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.05, 0.08, 8), bodyMat);
+            t.position.set(0.2, 0.06, -1.25); exhaustGroup.add(t);
+        }
+
+        function createSportExhaust() {
+            clearExhaust();
+            const darkMetal = new THREE.MeshStandardMaterial({ color: '#333', roughness: 0.2, metalness: 0.9 });
+            const p = new THREE.Mesh(new THREE.CylinderGeometry(0.05, 0.06, 0.9, 8), darkMetal);
+            p.position.set(0.25, 0.25, -0.5); p.rotation.x = -0.15; exhaustGroup.add(p);
+            const b = new THREE.Mesh(new THREE.BoxGeometry(0.16, 0.1, 0.5), darkMetal);
+            b.position.set(0.25, 0.06, -1.0); exhaustGroup.add(b);
+            const t = new THREE.Mesh(new THREE.CylinderGeometry(0.06, 0.07, 0.12, 8),
+                new THREE.MeshStandardMaterial({ color: '#ffd700', roughness: 0.1, metalness: 1 }));
+            t.position.set(0.25, 0.06, -1.3); exhaustGroup.add(t);
+        }
+
+        function createRaceExhaust() {
+            clearExhaust();
+            const carbonMat = new THREE.MeshStandardMaterial({ color: '#1a1a1a', roughness: 0.3, metalness: 0.4 });
+            const p = new THREE.Mesh(new THREE.CylinderGeometry(0.05, 0.06, 0.8, 8), carbonMat);
+            p.position.set(0.25, 0.25, -0.45); p.rotation.x = -0.1; exhaustGroup.add(p);
+            const b = new THREE.Mesh(new THREE.BoxGeometry(0.18, 0.12, 0.4), carbonMat);
+            b.position.set(0.25, 0.06, -0.9); exhaustGroup.add(b);
+            for (let s = -1; s <= 1; s += 2) {
+                const t = new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.05, 0.1, 8),
+                    new THREE.MeshStandardMaterial({ color: '#ff4400', roughness: 0.1, metalness: 1 }));
+                t.position.set(0.25 + s * 0.05, 0.06, -1.15); exhaustGroup.add(t);
+            }
+        }
+
         scene.add(bikeGroup);
 
-        // Başlangıç egzozu
-        createStockExhaust();
-
-        // ============ ALEV PARTİKÜLLERİ ============
+        // ============ ALEV ============
         const flameGroup = new THREE.Group();
-        flameGroup.visible = false;
-        scene.add(flameGroup);
+        flameGroup.visible = false; scene.add(flameGroup);
         let flameParticles = [];
 
         function createFlameBurst() {
             while (flameGroup.children.length > 0) flameGroup.remove(flameGroup.children[0]);
             flameParticles = [];
             for (let i = 0; i < 50; i++) {
-                const f = new THREE.Mesh(
-                    new THREE.SphereGeometry(Math.random() * 0.08 + 0.03, 4, 4),
-                    new THREE.MeshBasicMaterial({ color: Math.random() > 0.5 ? '#ff4400' : '#ffaa00', transparent: true, opacity: 1 })
-                );
-                f.position.set(0.2 + (Math.random() - 0.5) * 0.1, 0.06 + (Math.random() - 0.5) * 0.05, -1.3);
-                flameParticles.push({
-                    mesh: f,
-                    vel: new THREE.Vector3((Math.random() - 0.5) * 2, Math.random() * 3 + 1, -Math.random() * 5 - 3),
-                    life: 0.6 + Math.random() * 0.5, age: 0
-                });
+                const f = new THREE.Mesh(new THREE.SphereGeometry(Math.random() * 0.08 + 0.03, 4, 4),
+                    new THREE.MeshBasicMaterial({ color: Math.random() > 0.5 ? '#ff4400' : '#ffaa00', transparent: true }));
+                f.position.set(0.2 + (Math.random() - 0.5) * 0.1, 0.06, -1.3);
+                flameParticles.push({ mesh: f, vel: new THREE.Vector3((Math.random() - 0.5) * 2, Math.random() * 3 + 1, -Math.random() * 5 - 3), life: 0.6 + Math.random() * 0.5, age: 0 });
                 flameGroup.add(f);
             }
             flameGroup.visible = true;
@@ -287,7 +219,6 @@
                 p.age += dt;
                 p.mesh.position.add(p.vel.clone().multiplyScalar(dt));
                 p.mesh.material.opacity = 1 - (p.age / p.life);
-                p.mesh.scale.setScalar(1 - (p.age / p.life) * 0.7);
                 if (p.age >= p.life) { flameGroup.remove(p.mesh); flameParticles.splice(i, 1); }
             }
             if (flameParticles.length === 0) flameGroup.visible = false;
@@ -296,67 +227,42 @@
         // ============ SES ============
         let audioCtx = null;
         function initAudio() { if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)(); }
-
         function playExhaustSound() {
             try {
                 initAudio();
                 const sr = audioCtx.sampleRate;
                 const buf = audioCtx.createBuffer(1, 0.5 * sr, sr);
                 const d = buf.getChannelData(0);
-                for (let i = 0; i < d.length; i++) {
-                    const t = i / sr;
-                    d[i] = ((Math.random() * 2 - 1) * 0.4 + Math.sin(2 * Math.PI * 80 * t) * 0.6) * Math.exp(-t * 8) * 0.7;
-                }
+                for (let i = 0; i < d.length; i++) d[i] = ((Math.random() * 2 - 1) * 0.4 + Math.sin(2 * Math.PI * 80 * (i / sr)) * 0.6) * Math.exp(-i / sr * 8) * 0.7;
                 const src = audioCtx.createBufferSource(); src.buffer = buf;
                 const g = audioCtx.createGain();
                 g.gain.setValueAtTime(0.8, audioCtx.currentTime);
                 g.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.5);
                 src.connect(g); g.connect(audioCtx.destination); src.start();
-
-                setTimeout(() => {
-                    const b2 = audioCtx.createBuffer(1, 0.3 * sr, sr);
-                    const d2 = b2.getChannelData(0);
-                    for (let i = 0; i < d2.length; i++) d2[i] = (Math.random() * 2 - 1) * Math.exp(-i / sr * 10) * 0.5;
-                    const s2 = audioCtx.createBufferSource(); s2.buffer = b2;
-                    const g2 = audioCtx.createGain();
-                    g2.gain.setValueAtTime(0.5, audioCtx.currentTime);
-                    g2.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.3);
-                    s2.connect(g2); g2.connect(audioCtx.destination); s2.start();
-                }, 100);
-            } catch (e) { console.log('Ses:', e); }
+            } catch (e) {}
         }
 
         window.blastExhaust = function() {
-            createFlameBurst();
-            playExhaustSound();
-            document.body.style.transform = 'translateX(3px)';
-            setTimeout(() => document.body.style.transform = 'translateX(-3px)', 50);
-            setTimeout(() => document.body.style.transform = 'translateX(0)', 100);
-            for (let i = 0; i < 20; i++) {
-                const p = document.createElement('div'); p.className = 'flame-particle';
-                p.style.cssText = `left:52%;top:58%;background:${Math.random()>0.5?'#ff4400':'#ffaa00'};width:${Math.random()*12+6}px;height:${Math.random()*12+6}px;--dx:${(Math.random()-0.5)*200}px;--dy:${-(Math.random()*150+50)}px;border-radius:50%;`;
-                document.body.appendChild(p); setTimeout(() => p.remove(), 800);
-            }
+            createFlameBurst(); playExhaustSound();
             if (navigator.vibrate) navigator.vibrate([30, 50, 30]);
         };
 
         // ============ SÜRÜKLEME ============
-        const clock = new THREE.Clock();
         let isDragging = false, prevMouseX = 0, rotationY = 0;
         canvas.addEventListener('mousedown', e => { isDragging = true; prevMouseX = e.clientX; });
-        canvas.addEventListener('mousemove', e => { if (isDragging) { rotationY += (e.clientX - prevMouseX) * 0.01; prevMouseX = e.clientX; } });
+        canvas.addEventListener('mousemove', e => { if (isDragging) rotationY += (e.clientX - prevMouseX) * 0.01; prevMouseX = e.clientX; });
         canvas.addEventListener('mouseup', () => isDragging = false);
         canvas.addEventListener('mouseleave', () => isDragging = false);
         canvas.addEventListener('touchstart', e => { if (e.touches.length === 1) { isDragging = true; prevMouseX = e.touches[0].clientX; } });
-        canvas.addEventListener('touchmove', e => { if (isDragging && e.touches.length === 1) { rotationY += (e.touches[0].clientX - prevMouseX) * 0.01; prevMouseX = e.touches[0].clientX; } });
+        canvas.addEventListener('touchmove', e => { if (isDragging && e.touches.length === 1) rotationY += (e.touches[0].clientX - prevMouseX) * 0.01; prevMouseX = e.touches[0].clientX; });
         canvas.addEventListener('touchend', () => isDragging = false);
 
+        const clock = new THREE.Clock();
         function animate() {
             requestAnimationFrame(animate);
             const dt = Math.min(clock.getDelta(), 0.1);
             if (!isDragging) rotationY += 0.003;
             bikeGroup.rotation.y = rotationY;
-            bikeGroup.position.y = Math.sin(Date.now() * 0.001) * 0.05;
             updateFlames(dt);
             renderer.render(scene, camera);
         }
@@ -368,74 +274,57 @@
             renderer.setSize(window.innerWidth, window.innerHeight);
         });
 
-        // ============ RENK DEĞİŞTİRME ============
+        // ============ MODİFİYE ============
         function changeColor(color) {
-            const m = new THREE.MeshStandardMaterial({ color, roughness: 0.15, metalness: 0.8 });
-            bodyParts['frame'].material = m;
-            bodyParts['tank'].material = m;
-            if (exhaustParts['tip']) exhaustParts['tip'].material = m;
-            if (exhaustParts['tip-1']) exhaustParts['tip-1'].material = new THREE.MeshStandardMaterial({ color, roughness: 0.1, metalness: 1, emissive: '#220000', emissiveIntensity: 0.5 });
-            if (exhaustParts['tip1']) exhaustParts['tip1'].material = new THREE.MeshStandardMaterial({ color, roughness: 0.1, metalness: 1, emissive: '#220000', emissiveIntensity: 0.5 });
-            bodyMat = m;
+            currentColor = color;
+            bodyMat = new THREE.MeshStandardMaterial({ color, roughness: 0.15, metalness: 0.8 });
+            frame.material = bodyMat;
+            tank.material = bodyMat;
             localStorage.setItem('motorRiderBikeColor', color);
         }
 
-        // ============ MODİFİYE SİSTEMİ ============
         const mods = [
-            { id: 'color_red', name: 'Kırmızı', icon: '🔴', price: 200, category: 'renk', apply: () => changeColor('#ff3300') },
-            { id: 'color_blue', name: 'Mavi', icon: '🔵', price: 200, category: 'renk', apply: () => changeColor('#0066ff') },
-            { id: 'color_green', name: 'Yeşil', icon: '🟢', price: 200, category: 'renk', apply: () => changeColor('#00cc44') },
-            { id: 'color_black', name: 'Siyah', icon: '⚫', price: 200, category: 'renk', apply: () => changeColor('#1a1a1a') },
-            { id: 'color_white', name: 'Beyaz', icon: '⚪', price: 200, category: 'renk', apply: () => changeColor('#f0f0f0') },
-            { id: 'color_gold', name: 'Altın', icon: '🟡', price: 200, category: 'renk', apply: () => changeColor('#d4a017') },
-            { id: 'exhaust_stock', name: 'Stok Egzoz', icon: '🔧', price: 0, category: 'egzoz', apply: () => createStockExhaust() },
-            { id: 'exhaust_sport', name: 'Sport Egzoz', icon: '💨', price: 50, category: 'egzoz', apply: () => createSportExhaust() },
-            { id: 'exhaust_race', name: 'Yarış Egzoz', icon: '🔥', price: 50, category: 'egzoz', apply: () => createRaceExhaust() },
-            { id: 'rim_chrome', name: 'Krom Jant', icon: '✨', price: 200, category: 'jant', apply: () => {
-                bodyParts['frontRim'].material = chromeMat;
-                bodyParts['rearRim'].material = chromeMat;
-            }},
-            { id: 'rim_black', name: 'Siyah Jant', icon: '🖤', price: 200, category: 'jant', apply: () => {
-                const blackRim = new THREE.MeshStandardMaterial({ color: '#1a1a1a', roughness: 0.2, metalness: 0.8 });
-                bodyParts['frontRim'].material = blackRim;
-                bodyParts['rearRim'].material = blackRim;
-            }},
+            { id: 'color_red', name: 'Kırmızı', icon: '🔴', price: 200, cat: 'renk', apply: () => changeColor('#ff3300') },
+            { id: 'color_blue', name: 'Mavi', icon: '🔵', price: 200, cat: 'renk', apply: () => changeColor('#0066ff') },
+            { id: 'color_green', name: 'Yeşil', icon: '🟢', price: 200, cat: 'renk', apply: () => changeColor('#00cc44') },
+            { id: 'color_black', name: 'Siyah', icon: '⚫', price: 200, cat: 'renk', apply: () => changeColor('#1a1a1a') },
+            { id: 'color_white', name: 'Beyaz', icon: '⚪', price: 200, cat: 'renk', apply: () => changeColor('#f0f0f0') },
+            { id: 'color_gold', name: 'Altın', icon: '🟡', price: 200, cat: 'renk', apply: () => changeColor('#d4a017') },
+            { id: 'exhaust_stock', name: 'Stok Egzoz', icon: '🔧', price: 0, cat: 'egzoz', apply: createStockExhaust },
+            { id: 'exhaust_sport', name: 'Sport Egzoz', icon: '💨', price: 50, cat: 'egzoz', apply: createSportExhaust },
+            { id: 'exhaust_race', name: 'Yarış Egzoz', icon: '🔥', price: 50, cat: 'egzoz', apply: createRaceExhaust },
         ];
 
-        const ownedMods = JSON.parse(localStorage.getItem('motorRiderOwnedMods')) || ['color_red', 'exhaust_stock', 'rim_chrome'];
-        const equippedMods = JSON.parse(localStorage.getItem('motorRiderEquippedMods')) || { renk: 'color_red', egzoz: 'exhaust_stock', jant: 'rim_chrome' };
+        let ownedMods = JSON.parse(localStorage.getItem('motorRiderOwnedMods')) || ['color_red', 'exhaust_stock'];
+        let equippedMods = JSON.parse(localStorage.getItem('motorRiderEquippedMods')) || { renk: 'color_red', egzoz: 'exhaust_stock' };
 
-        function buildModPanel() {
+        function buildPanel() {
             const panel = document.getElementById('mod-panel');
             panel.innerHTML = '';
             mods.forEach(mod => {
                 const btn = document.createElement('button');
                 btn.className = 'mod-btn';
-                if (equippedMods[mod.category] === mod.id) btn.classList.add('equipped');
+                if (equippedMods[mod.cat] === mod.id) btn.classList.add('equipped');
                 if (ownedMods.includes(mod.id)) btn.classList.add('owned');
-                btn.innerHTML = `<span class="mod-icon">${mod.icon}</span><span>${mod.name}</span><span class="mod-price">${ownedMods.includes(mod.id) ? '✅ Sahip' : '🪙 ' + mod.price}</span>`;
+                btn.innerHTML = `<span class="mod-icon">${mod.icon}</span><span>${mod.name}</span><span class="mod-price">${ownedMods.includes(mod.id) ? '✅' : '🪙'+mod.price}</span>`;
                 btn.onclick = () => {
                     if (ownedMods.includes(mod.id)) {
-                        equippedMods[mod.category] = mod.id;
+                        equippedMods[mod.cat] = mod.id;
                         localStorage.setItem('motorRiderEquippedMods', JSON.stringify(equippedMods));
                         mod.apply();
-                        buildModPanel();
-                        console.log('✅ Kuşanıldı:', mod.name);
+                        buildPanel();
+                    } else if (money >= mod.price) {
+                        money -= mod.price;
+                        ownedMods.push(mod.id);
+                        equippedMods[mod.cat] = mod.id;
+                        localStorage.setItem('motorRiderMoney', money);
+                        localStorage.setItem('motorRiderOwnedMods', JSON.stringify(ownedMods));
+                        localStorage.setItem('motorRiderEquippedMods', JSON.stringify(equippedMods));
+                        document.getElementById('garage-money').textContent = money.toLocaleString('tr-TR');
+                        mod.apply();
+                        buildPanel();
                     } else {
-                        if (money >= mod.price) {
-                            money -= mod.price;
-                            ownedMods.push(mod.id);
-                            localStorage.setItem('motorRiderMoney', money);
-                            localStorage.setItem('motorRiderOwnedMods', JSON.stringify(ownedMods));
-                            document.getElementById('garage-money').textContent = money.toLocaleString('tr-TR');
-                            equippedMods[mod.category] = mod.id;
-                            localStorage.setItem('motorRiderEquippedMods', JSON.stringify(equippedMods));
-                            mod.apply();
-                            buildModPanel();
-                            console.log('🛒 Alındı:', mod.name);
-                        } else {
-                            alert('❌ Yetersiz bakiye!\nGerekli: 🪙 ' + mod.price + '\nSenin: 🪙 ' + money.toLocaleString('tr-TR'));
-                        }
+                        alert('❌ Yetersiz bakiye!\nGerekli: 🪙 ' + mod.price + '\nSenin: 🪙 ' + money.toLocaleString('tr-TR'));
                     }
                 };
                 panel.appendChild(btn);
@@ -443,14 +332,12 @@
         }
 
         // Başlangıçta kuşanılmışları uygula
-        const eqColor = mods.find(m => m.id === equippedMods['renk']);
-        if (eqColor) eqColor.apply();
-        const eqExhaust = mods.find(m => m.id === equippedMods['egzoz']);
-        if (eqExhaust) eqExhaust.apply();
-        const eqRim = mods.find(m => m.id === equippedMods['jant']);
-        if (eqRim) eqRim.apply();
+        const eqRenk = mods.find(m => m.id === equippedMods['renk']);
+        if (eqRenk) eqRenk.apply();
+        const eqEgzoz = mods.find(m => m.id === equippedMods['egzoz']);
+        if (eqEgzoz) eqEgzoz.apply();
 
-        buildModPanel();
+        buildPanel();
         console.log('🔧 Garaj hazır! 💰', money.toLocaleString('tr-TR'));
     </script>
 </body>
