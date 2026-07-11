@@ -51,9 +51,11 @@
     window.onload = function() {
         if (typeof THREE === 'undefined') { document.body.innerHTML = '<h1 style="color:white;text-align:center;margin-top:40vh;">Yuklenemedi!</h1>'; return; }
 
-        var settings, bikeColor;
-        try { settings = JSON.parse(localStorage.getItem('motorRiderSettings')) || { mode: 'phone', sensitivity: 65, drawDistance: 100 }; } catch(e) { settings = { mode: 'phone', sensitivity: 65, drawDistance: 100 }; }
-        try { bikeColor = localStorage.getItem('motorRiderBikeColor') || '#ff3300'; } catch(e) { bikeColor = '#ff3300'; }
+        // AYARLAR - localStorage HATASIZ
+        var settings = { mode: 'phone', sensitivity: 65, drawDistance: 100 };
+        var bikeColor = '#ff3300';
+        try { var s = localStorage.getItem('motorRiderSettings'); if (s) settings = JSON.parse(s); } catch(e) {}
+        try { var c = localStorage.getItem('motorRiderBikeColor'); if (c) bikeColor = c; } catch(e) {}
         if (settings.mode === 'pc') document.body.classList.add('pc-mode');
 
         var scene = new THREE.Scene();
@@ -67,13 +69,13 @@
 
         var renderer = new THREE.WebGLRenderer({ canvas: document.getElementById('c'), antialias: true });
         renderer.setSize(innerWidth, innerHeight);
-        renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+        renderer.setPixelRatio(Math.min(devicePixelRatio || 1, 2));
 
         scene.add(new THREE.AmbientLight(0xffffff, 0.7));
         var sun = new THREE.DirectionalLight(0xfff8e7, 2);
         sun.position.set(30, 40, 20); scene.add(sun);
 
-        // ============ SES (TEK EGZOZ PATLATMA) ============
+        // ============ SES ============
         var audioCtx = null;
         function initAudio() { if (!audioCtx) try { audioCtx = new (window.AudioContext || window.webkitAudioContext)(); } catch(e) {} }
 
@@ -132,7 +134,6 @@
 
         bike.add(new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.04, 0.65, 8), chrome).rotation.set(0,0,Math.PI/2).position.set(0, 1.2, 0.8));
 
-        // Basit egzoz
         var exGroup = new THREE.Group();
         exGroup.add(new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.05, 0.9, 8), chrome).position.set(0.2, 0.25, -0.5).rotation.set(-0.2,0,0));
         exGroup.add(new THREE.Mesh(new THREE.BoxGeometry(0.14, 0.09, 0.45), chrome).position.set(0.2, 0.06, -1.0));
@@ -192,7 +193,6 @@
                 var grass = new THREE.Mesh(new THREE.PlaneGeometry(12, SEG), grassMat);
                 grass.rotation.x = -Math.PI/2; grass.position.set(s*10, -0.02, SEG/2); g.add(grass);
 
-                // Ağaçlar
                 for (var t=0; t<2; t++) {
                     var tree = new THREE.Group();
                     var th = 2+Math.random()*2;
@@ -201,7 +201,6 @@
                     tree.position.set(s*(7+Math.random()*6), 0, Math.random()*SEG); g.add(tree);
                 }
 
-                // Binalar (penceresiz, basit)
                 if (Math.random() > 0.4) {
                     var bw = 3+Math.random()*5, bh = 5+Math.random()*20, bd = 3+Math.random()*6;
                     var b = new THREE.Mesh(new THREE.BoxGeometry(bw, bh, bd), bMats[Math.floor(Math.random()*3)]);
@@ -216,9 +215,10 @@
 
         // ============ OYUN ============
         var speed = 0, gear = 0, rpm = 0;
-        var money = parseInt(localStorage.getItem('motorRiderMoney')) || 0;
-        var dist = parseFloat(localStorage.getItem('motorRiderDistance')) || 0;
-        var saveCounter = 0, lastExhaust = 0;
+        var money = 0, dist = 0;
+        try { money = parseInt(localStorage.getItem('motorRiderMoney')) || 0; } catch(e) {}
+        try { dist = parseFloat(localStorage.getItem('motorRiderDistance')) || 0; } catch(e) {}
+        var saveCounter = 0, lastExhaust = Date.now();
         var lateralPos = 0, leanAngle = 0, wheelieAngle = 0;
         var gasOn = false, brakeOn = false, wheelieOn = false;
         var keys = {};
@@ -292,18 +292,17 @@
             money += d * 0.05;
             if (saveCounter > 50) { save(); saveCounter = 0; }
 
-            // Tek egzoz patlatma
-            if (rpm > 0.5 && Math.abs(speed) > 30 && performance.now() - lastExhaust > 400) {
+            if (rpm > 0.5 && Math.abs(speed) > 30 && Date.now() - lastExhaust > 400) {
                 playExhaustPop();
-                lastExhaust = performance.now();
+                lastExhaust = Date.now();
                 burstFlame();
             }
         }
 
-        var lastTime = performance.now();
+        var lastTime = Date.now();
         function loop() {
             requestAnimationFrame(loop);
-            var now = performance.now();
+            var now = Date.now();
             var dt = Math.min((now - lastTime) / 1000, 0.1);
             lastTime = now;
 
@@ -348,7 +347,7 @@
         setInterval(save, 5000);
 
         updateHUD();
-        lastTime = performance.now();
+        lastTime = Date.now();
         loop();
     };
     </script>
