@@ -44,12 +44,6 @@
         throw new Error('Three yok');
     }
 
-    var mode = 'phone';
-    var bikeColor = '#ff3300';
-    try { var s = JSON.parse(localStorage.getItem('motorRiderSettings')); if (s && s.mode) mode = s.mode; } catch(e) {}
-    try { var c = localStorage.getItem('motorRiderBikeColor'); if (c) bikeColor = c; } catch(e) {}
-    if (mode === 'pc') document.body.classList.add('pc-mode');
-
     var scene = new THREE.Scene();
     scene.background = new THREE.Color(0x87CEEB);
     scene.fog = new THREE.Fog(0x87CEEB, 40, 100);
@@ -69,7 +63,7 @@
 
     // MOTOR
     var bike = new THREE.Group();
-    var red = new THREE.MeshStandardMaterial({ color: bikeColor, roughness: 0.2, metalness: 0.8 });
+    var red = new THREE.MeshStandardMaterial({ color: 0xff3300, roughness: 0.2, metalness: 0.8 });
     var gray = new THREE.MeshStandardMaterial({ color: 0x333333, roughness: 0.3 });
     var black = new THREE.MeshStandardMaterial({ color: 0x111111, roughness: 0.9 });
 
@@ -88,38 +82,15 @@
 
     bike.add(new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.04, 0.6, 6), new THREE.MeshStandardMaterial({ color: 0xcccccc, roughness: 0.1, metalness: 1 })).rotation.set(0,0,Math.PI/2).position.set(0, 1.2, 0.8));
 
-    // Egzoz (sessiz)
+    // Egzoz
     var ex = new THREE.Group();
     ex.add(new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.05, 0.8, 6), new THREE.MeshStandardMaterial({ color: 0xcccccc, roughness: 0.1, metalness: 1 })).position.set(0.18, 0.2, -0.7).rotation.set(-0.2,0,0));
     ex.add(new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.06, 0.1, 6), new THREE.MeshStandardMaterial({ color: 0xff4400, roughness: 0.1, metalness: 1, emissive: 0x220000, emissiveIntensity: 0.3 })).position.set(0.18, 0.08, -1.1));
     bike.add(ex);
 
-    // Alev
-    var flameGroup = new THREE.Group(); flameGroup.visible = false; bike.add(flameGroup);
-    var flames = [];
-    function burstFlame() {
-        while(flameGroup.children.length>0) flameGroup.remove(flameGroup.children[0]);
-        flames = [];
-        for (var i=0; i<15; i++) {
-            var fl = new THREE.Mesh(new THREE.SphereGeometry(Math.random()*0.04+0.02, 3, 3), new THREE.MeshBasicMaterial({ color: Math.random()>0.5 ? 0xff4400 : 0xffaa00, transparent: true }));
-            fl.position.set(0.18+(Math.random()-0.5)*0.1, 0.08, -1.1);
-            flames.push({ mesh: fl, vel: new THREE.Vector3((Math.random()-0.5)*1.5, Math.random()*2+0.5, -Math.random()*4-1), life: 0.3+Math.random()*0.3, age: 0 });
-            flameGroup.add(fl);
-        }
-        flameGroup.visible = true;
-    }
-    function updateFlames(dt) {
-        for (var i=flames.length-1; i>=0; i--) {
-            var p = flames[i]; p.age += dt;
-            p.mesh.position.add(p.vel.clone().multiplyScalar(dt));
-            p.mesh.material.opacity = 1 - (p.age/p.life);
-            if (p.age >= p.life) { flameGroup.remove(p.mesh); flames.splice(i,1); }
-        }
-        if (flames.length===0) flameGroup.visible = false;
-    }
     scene.add(bike);
 
-    // YOL
+    // YOL (sadece yol + ağaç)
     var roadGroup = new THREE.Group(); scene.add(roadGroup);
     var roadMat = new THREE.MeshStandardMaterial({ color: 0x444444, roughness: 0.8 });
     var grassMat = new THREE.MeshStandardMaterial({ color: 0x2d5a1e, roughness: 0.9 });
@@ -147,10 +118,9 @@
         roadGroup.add(g);
     }
 
-    // SES (sadece korna)
+    // Korna sesi
     var audioCtx = null;
     function initAudio() { if (!audioCtx) try { audioCtx = new (window.AudioContext || window.webkitAudioContext)(); } catch(e) {} }
-
     function playHorn() {
         initAudio(); if (!audioCtx) return;
         try {
@@ -164,8 +134,9 @@
 
     // OYUN
     var speed = 0, gear = 0, rpm = 0;
-    var money = parseInt(localStorage.getItem('motorRiderMoney')) || 0;
-    var dist = parseFloat(localStorage.getItem('motorRiderDistance')) || 0;
+    var money = 0, dist = 0;
+    try { money = parseInt(localStorage.getItem('motorRiderMoney')) || 0; } catch(e) {}
+    try { dist = parseFloat(localStorage.getItem('motorRiderDistance')) || 0; } catch(e) {}
     var lateralPos = 0, leanAngle = 0, wheelieAngle = 0;
     var gasOn = false, brakeOn = false, wheelieOn = false;
     var keys = {};
@@ -232,9 +203,6 @@
         rf.style.width = (rpm*100) + '%';
         rf.style.background = rpm > 0.9 ? '#ff0000' : rpm > 0.7 ? '#ffd700' : '#00ff88';
 
-        // Alev (sessiz)
-        if (rpm > 0.7 && Math.abs(speed) > 40 && Math.random() < dt * 2) burstFlame();
-
         var move = speed * dt * 0.5;
         for (var i=0; i<segments.length; i++) {
             segments[i].position.z += move;
@@ -255,7 +223,6 @@
         camera.position.y = 4 + Math.abs(speed)*0.01;
         camera.lookAt(lateralPos*0.3, 1, 10);
 
-        updateFlames(dt);
         renderer.render(scene, camera);
     }
 
