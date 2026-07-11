@@ -137,7 +137,10 @@
         // ============ AYARLAR ============
         const settings = JSON.parse(localStorage.getItem('motorRiderSettings')) || { mode: 'phone', sensitivity: 65 };
         if (settings.mode === 'pc') document.body.classList.add('pc-mode');
+
+        // 🎨 GARAJ RENGİ
         const bikeColor = localStorage.getItem('motorRiderBikeColor') || '#ff3300';
+        console.log('🎨 Motor rengi:', bikeColor);
 
         // ============ THREE.JS ============
         const canvas = document.getElementById('game-canvas');
@@ -145,6 +148,7 @@
         renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
         renderer.setSize(window.innerWidth, window.innerHeight);
         renderer.shadowMap.enabled = true;
+        renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 
         const scene = new THREE.Scene();
         scene.background = new THREE.Color('#87CEEB');
@@ -152,14 +156,21 @@
 
         const camera = new THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight, 0.5, 200);
         camera.position.set(0, 3.5, -5);
+        camera.lookAt(0, 1, 10);
 
+        // ============ IŞIK ============
         scene.add(new THREE.AmbientLight('#ffffff', 0.6));
         const sun = new THREE.DirectionalLight('#fff8e7', 1.8);
-        sun.position.set(20, 30, 10); sun.castShadow = true;
-        sun.shadow.mapSize.width = 2048; sun.shadow.mapSize.height = 2048;
+        sun.position.set(20, 30, 10);
+        sun.castShadow = true;
+        sun.shadow.mapSize.width = 2048;
+        sun.shadow.mapSize.height = 2048;
+        sun.shadow.camera.left = -30; sun.shadow.camera.right = 30;
+        sun.shadow.camera.top = 30; sun.shadow.camera.bottom = -30;
+        sun.shadow.camera.far = 150;
         scene.add(sun);
 
-        // ============ MOTOR ============
+        // ============ MOTOR (GARAJ RENGİ İLE) ============
         const bikeGroup = new THREE.Group();
         const bodyMat = new THREE.MeshStandardMaterial({ color: bikeColor, roughness: 0.2, metalness: 0.8 });
         const darkMat = new THREE.MeshStandardMaterial({ color: '#1a1a1a', roughness: 0.3, metalness: 0.7 });
@@ -167,109 +178,236 @@
         const tireMat = new THREE.MeshStandardMaterial({ color: '#111', roughness: 0.9 });
         const seatMat = new THREE.MeshStandardMaterial({ color: '#111', roughness: 0.8 });
 
-        bikeGroup.add(new THREE.Mesh(new THREE.BoxGeometry(0.35, 0.45, 1.7), bodyMat).position.set(0, 0.65, 0));
-        bikeGroup.add(new THREE.Mesh(new THREE.BoxGeometry(0.35, 0.4, 0.5), darkMat).position.set(0, 0.5, -0.05));
-        const tank = new THREE.Mesh(new THREE.CylinderGeometry(0.2, 0.23, 0.65, 12), bodyMat);
-        tank.rotation.x = Math.PI / 2; tank.position.set(0, 0.9, 0.25); bikeGroup.add(tank);
-        bikeGroup.add(new THREE.Mesh(new THREE.BoxGeometry(0.26, 0.12, 0.55), seatMat).position.set(0, 0.92, -0.45));
-        bikeGroup.add(new THREE.Mesh(new THREE.CylinderGeometry(0.1, 0.1, 0.06, 12),
-            new THREE.MeshStandardMaterial({ color: '#fff', emissive: '#fff', emissiveIntensity: 0.8 })).rotation.set(Math.PI/2,0,0).position.set(0, 0.85, 1.0));
+        const body = new THREE.Mesh(new THREE.BoxGeometry(0.35, 0.45, 1.7), bodyMat);
+        body.position.y = 0.65; body.castShadow = true; bikeGroup.add(body);
 
-        // Ön teker - YUVARLAK (20 segment)
+        const engine = new THREE.Mesh(new THREE.BoxGeometry(0.35, 0.4, 0.5), darkMat);
+        engine.position.set(0, 0.5, -0.05); engine.castShadow = true; bikeGroup.add(engine);
+
+        const tank = new THREE.Mesh(new THREE.CylinderGeometry(0.2, 0.23, 0.65, 12), bodyMat);
+        tank.rotation.x = Math.PI / 2; tank.position.set(0, 0.9, 0.25); tank.castShadow = true; bikeGroup.add(tank);
+
+        const seat = new THREE.Mesh(new THREE.BoxGeometry(0.26, 0.12, 0.55), seatMat);
+        seat.position.set(0, 0.92, -0.45); bikeGroup.add(seat);
+
+        const headlight = new THREE.Mesh(new THREE.CylinderGeometry(0.1, 0.1, 0.06, 12),
+            new THREE.MeshStandardMaterial({ color: '#fff', emissive: '#fff', emissiveIntensity: 0.8 }));
+        headlight.rotation.x = Math.PI / 2; headlight.position.set(0, 0.85, 1.0); bikeGroup.add(headlight);
+
         const frontWheel = new THREE.Group();
         frontWheel.position.set(0, 0.15, 0.9);
-        const ft = new THREE.Mesh(new THREE.TorusGeometry(0.28, 0.09, 16, 24), tireMat);
-        frontWheel.add(ft);
-        const frim = new THREE.Mesh(new THREE.CylinderGeometry(0.2, 0.2, 0.1, 20), chromeMat);
-        frim.rotation.x = Math.PI / 2; frontWheel.add(frim);
-        bikeGroup.add(frontWheel);
+        frontWheel.add(new THREE.Mesh(new THREE.TorusGeometry(0.28, 0.09, 8, 16), tireMat));
+        const fr = new THREE.Mesh(new THREE.CylinderGeometry(0.22, 0.22, 0.1, 16), chromeMat);
+        fr.rotation.x = Math.PI / 2; frontWheel.add(fr); bikeGroup.add(frontWheel);
 
-        // Arka teker - YUVARLAK (20 segment)
         const rearWheel = new THREE.Group();
         rearWheel.position.set(0, 0.15, -0.75);
-        const rt = new THREE.Mesh(new THREE.TorusGeometry(0.28, 0.09, 16, 24), tireMat);
-        rearWheel.add(rt);
-        const rrim = new THREE.Mesh(new THREE.CylinderGeometry(0.2, 0.2, 0.1, 20), chromeMat);
-        rrim.rotation.x = Math.PI / 2; rearWheel.add(rrim);
-        bikeGroup.add(rearWheel);
+        rearWheel.add(new THREE.Mesh(new THREE.TorusGeometry(0.28, 0.09, 8, 16), tireMat));
+        const rr = new THREE.Mesh(new THREE.CylinderGeometry(0.22, 0.22, 0.1, 16), chromeMat);
+        rr.rotation.x = Math.PI / 2; rearWheel.add(rr); bikeGroup.add(rearWheel);
 
-        bikeGroup.add(new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.04, 0.65, 8), chromeMat).rotation.set(0,0,Math.PI/2).position.set(0, 1.2, 0.8));
-        bikeGroup.add(new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.05, 0.8, 8), chromeMat).position.set(0.18, 0.2, -0.85).rotation.set(-0.2,0,0));
+        const hbar = new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.04, 0.65, 8), chromeMat);
+        hbar.rotation.z = Math.PI / 2; hbar.position.set(0, 1.2, 0.8); bikeGroup.add(hbar);
+
+        const exhaust = new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.05, 0.8, 8), chromeMat);
+        exhaust.position.set(0.18, 0.2, -0.85); exhaust.rotation.x = -0.2; bikeGroup.add(exhaust);
 
         scene.add(bikeGroup);
 
-        // ============ YOL + BİNALAR + LAMBALAR ============
-        const roadGroup = new THREE.Group(); scene.add(roadGroup);
+        // ============ YOL VE ÇEVRE ============
+        const roadGroup = new THREE.Group();
+        scene.add(roadGroup);
+
         const roadMat = new THREE.MeshStandardMaterial({ color: '#444', roughness: 0.8 });
+        const sidewalkMat = new THREE.MeshStandardMaterial({ color: '#999', roughness: 0.7 });
         const grassMat = new THREE.MeshStandardMaterial({ color: '#2d5a1e', roughness: 0.9 });
-        const bMats = [
-            new THREE.MeshStandardMaterial({ color: '#c4a882', roughness: 0.6 }),
-            new THREE.MeshStandardMaterial({ color: '#d5c4a1', roughness: 0.5 }),
-            new THREE.MeshStandardMaterial({ color: '#b8c5d0', roughness: 0.4, metalness: 0.3 })
-        ];
+        const buildingMat1 = new THREE.MeshStandardMaterial({ color: '#c4a882', roughness: 0.6 });
+        const buildingMat2 = new THREE.MeshStandardMaterial({ color: '#d5c4a1', roughness: 0.5 });
+        const buildingMat3 = new THREE.MeshStandardMaterial({ color: '#b8c5d0', roughness: 0.4, metalness: 0.3 });
+
         const segments = [];
         const segLen = 25;
         const totalSegs = 8;
 
+        function createTree(x, z) {
+            const tree = new THREE.Group();
+            const trunkH = 2 + Math.random() * 2;
+            const trunk = new THREE.Mesh(new THREE.CylinderGeometry(0.15, 0.2, trunkH, 6),
+                new THREE.MeshStandardMaterial({ color: '#8B5E3C', roughness: 0.9 }));
+            trunk.position.y = trunkH / 2;
+            trunk.castShadow = true;
+            tree.add(trunk);
+            const leaves = new THREE.Mesh(new THREE.ConeGeometry(1.2, 3, 8),
+                new THREE.MeshStandardMaterial({ color: '#1a5c1a', roughness: 0.8 }));
+            leaves.position.y = trunkH + 1;
+            leaves.castShadow = true;
+            tree.add(leaves);
+            tree.position.set(x, 0, z);
+            return tree;
+        }
+
+        function createBuilding(x, z, w, h, d, mat) {
+            const building = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), mat);
+            building.position.set(x, h / 2, z);
+            building.castShadow = true;
+            building.receiveShadow = true;
+            return building;
+        }
+
+        function createLampPost(x, z) {
+            const post = new THREE.Group();
+            const pole = new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.1, 7, 6),
+                new THREE.MeshStandardMaterial({ color: '#555', roughness: 0.4, metalness: 0.7 }));
+            pole.position.y = 3.5;
+            pole.castShadow = true;
+            post.add(pole);
+            const light = new THREE.Mesh(new THREE.SphereGeometry(0.3, 8),
+                new THREE.MeshStandardMaterial({ color: '#ffd', emissive: '#ffd', emissiveIntensity: 0.4 }));
+            light.position.y = 7;
+            post.add(light);
+            post.position.set(x, 0, z);
+            return post;
+        }
+
         function createSegment(zStart) {
-            const g = new THREE.Group();
+            const group = new THREE.Group();
+
             const road = new THREE.Mesh(new THREE.PlaneGeometry(8, segLen), roadMat);
-            road.rotation.x = -Math.PI / 2; road.position.set(0, 0.01, segLen / 2); g.add(road);
+            road.rotation.x = -Math.PI / 2; road.position.set(0, 0.01, segLen / 2);
+            road.receiveShadow = true; group.add(road);
 
             for (let z = 0; z < segLen; z += 4) {
-                const dash = new THREE.Mesh(new THREE.PlaneGeometry(0.3, 2.5), new THREE.MeshStandardMaterial({ color: '#fff' }));
-                dash.rotation.x = -Math.PI / 2; dash.position.set(0, 0.02, z + 1.5); g.add(dash);
+                const dash = new THREE.Mesh(new THREE.PlaneGeometry(0.3, 2.5),
+                    new THREE.MeshStandardMaterial({ color: '#fff', roughness: 0.3, emissive: '#fff', emissiveIntensity: 0.2 }));
+                dash.rotation.x = -Math.PI / 2; dash.position.set(0, 0.02, z + 1.5); group.add(dash);
             }
+
             for (let s = -1; s <= 1; s += 2) {
-                g.add(new THREE.Mesh(new THREE.PlaneGeometry(0.2, segLen), new THREE.MeshStandardMaterial({ color: '#fff' })).rotation.set(-Math.PI/2,0,0).position.set(s*3.5, 0.02, segLen/2));
-                g.add(new THREE.Mesh(new THREE.BoxGeometry(1.5, 0.2, segLen), new THREE.MeshStandardMaterial({ color: '#999' })).position.set(s*4.7, -0.05, segLen/2));
-                g.add(new THREE.Mesh(new THREE.PlaneGeometry(8, segLen), grassMat).rotation.set(-Math.PI/2,0,0).position.set(s*10, -0.02, segLen/2));
+                const edge = new THREE.Mesh(new THREE.PlaneGeometry(0.2, segLen),
+                    new THREE.MeshStandardMaterial({ color: '#fff', roughness: 0.3 }));
+                edge.rotation.x = -Math.PI / 2; edge.position.set(s * 3.5, 0.02, segLen / 2); group.add(edge);
+            }
 
-                // Ağaçlar
-                for (let t = 0; t < 3; t++) {
-                    const tree = new THREE.Group();
-                    const th = 2 + Math.random() * 2;
-                    tree.add(new THREE.Mesh(new THREE.CylinderGeometry(0.15, 0.2, th, 6), new THREE.MeshStandardMaterial({ color: '#8B5E3C' })).position.set(0, th/2, 0));
-                    tree.add(new THREE.Mesh(new THREE.ConeGeometry(1.2, 3, 8), new THREE.MeshStandardMaterial({ color: '#1a5c1a' })).position.set(0, th+1.2, 0));
-                    tree.position.set(s * (7 + Math.random() * 5), 0, Math.random() * segLen); g.add(tree);
-                }
+            for (let s = -1; s <= 1; s += 2) {
+                const sw = new THREE.Mesh(new THREE.BoxGeometry(1.5, 0.2, segLen), sidewalkMat);
+                sw.position.set(s * 4.7, -0.05, segLen / 2); sw.receiveShadow = true; group.add(sw);
+            }
 
-                // Binalar
-                if (Math.random() > 0.4) {
-                    const bw = 3 + Math.random() * 5, bh = 8 + Math.random() * 20, bd = 4 + Math.random() * 6;
-                    const b = new THREE.Mesh(new THREE.BoxGeometry(bw, bh, bd), bMats[Math.floor(Math.random() * 3)]);
-                    b.position.set(s * (9 + bw/2 + Math.random() * 3), bh/2, Math.random() * (segLen - bd));
-                    b.castShadow = true; g.add(b);
-                }
+            for (let s = -1; s <= 1; s += 2) {
+                const grass = new THREE.Mesh(new THREE.PlaneGeometry(8, segLen), grassMat);
+                grass.rotation.x = -Math.PI / 2; grass.position.set(s * 10, -0.02, segLen / 2);
+                grass.receiveShadow = true; group.add(grass);
+            }
 
-                // Lamba direkleri
-                if (Math.random() > 0.4) {
-                    const pole = new THREE.Group();
-                    pole.add(new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.1, 7, 6), new THREE.MeshStandardMaterial({ color: '#555', roughness: 0.4, metalness: 0.7 })).position.set(0, 3.5, 0));
-                    pole.add(new THREE.Mesh(new THREE.SphereGeometry(0.3, 8), new THREE.MeshStandardMaterial({ color: '#ffd', emissive: '#ffd', emissiveIntensity: 0.4 })).position.set(0, 7, 0));
-                    pole.position.set(s * 5.5, 0, Math.random() * segLen); g.add(pole);
+            for (let s = -1; s <= 1; s += 2) {
+                const treeCount = 2 + Math.floor(Math.random() * 3);
+                for (let t = 0; t < treeCount; t++) {
+                    const tree = createTree(s * (7 + Math.random() * 5), Math.random() * segLen);
+                    group.add(tree);
                 }
             }
-            g.position.z = zStart;
-            return g;
+
+            if (Math.random() > 0.3) {
+                const mats = [buildingMat1, buildingMat2, buildingMat3];
+                for (let s = -1; s <= 1; s += 2) {
+                    if (Math.random() > 0.3) {
+                        const bw = 3 + Math.random() * 5;
+                        const bh = 8 + Math.random() * 20;
+                        const bd = 4 + Math.random() * 8;
+                        const building = createBuilding(s * (10 + bw / 2), Math.random() * (segLen - bd), bw, bh, bd,
+                            mats[Math.floor(Math.random() * 3)]);
+                        group.add(building);
+                    }
+                }
+            }
+
+            for (let s = -1; s <= 1; s += 2) {
+                if (Math.random() > 0.3) {
+                    const lamp = createLampPost(s * 5.5, Math.random() * segLen);
+                    group.add(lamp);
+                }
+            }
+
+            group.position.z = zStart;
+            return group;
         }
 
         for (let i = 0; i < totalSegs; i++) {
-            segments.push(createSegment(-i * segLen));
-            roadGroup.add(segments[i]);
+            const seg = createSegment(-i * segLen);
+            segments.push(seg);
+            roadGroup.add(seg);
         }
 
-        // ============ SES ============
+        // ============ SES SİSTEMİ ============
         let audioCtx = null;
-        function initAudio() { if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)(); }
+        let engineOsc = null;
+        let engineGain = null;
+        let engineRunning = false;
+
+        function initAudio() {
+            if (!audioCtx) {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            }
+        }
+
+        function startEngineSound() {
+            if (engineRunning) return;
+            initAudio();
+            engineOsc = audioCtx.createOscillator();
+            engineGain = audioCtx.createGain();
+            const distortion = audioCtx.createWaveShaper();
+            distortion.curve = new Float32Array([0, 0.3, 0.5, 0.5, 0.4, 0.2, -0.1, -0.3, -0.2, 0]);
+            engineOsc.type = 'sawtooth';
+            engineOsc.frequency.value = 60;
+            engineGain.gain.value = 0;
+            engineOsc.connect(distortion);
+            distortion.connect(engineGain);
+            engineGain.connect(audioCtx.destination);
+            engineOsc.start();
+            engineRunning = true;
+        }
+
+        function updateEngineSound(speed, rpm) {
+            if (!engineRunning) return;
+            const freq = 40 + (rpm / 100) * 120 + (speed / 200) * 60;
+            engineOsc.frequency.setTargetAtTime(freq, audioCtx.currentTime, 0.05);
+            const vol = 0.01 + (rpm / 100) * 0.08;
+            engineGain.gain.setTargetAtTime(vol, audioCtx.currentTime, 0.05);
+        }
+
+        function stopEngineSound() {
+            if (engineRunning && engineGain) {
+                engineGain.gain.setTargetAtTime(0, audioCtx.currentTime, 0.1);
+                setTimeout(() => { if (engineOsc) { engineOsc.stop(); engineRunning = false; } }, 200);
+            }
+        }
+
         function playHorn() {
-            initAudio(); if (!audioCtx) return;
-            const o = audioCtx.createOscillator(), g = audioCtx.createGain();
-            o.type = 'square'; o.frequency.value = 440;
-            g.gain.setValueAtTime(0.3, audioCtx.currentTime);
-            g.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.5);
-            o.connect(g); g.connect(audioCtx.destination);
-            o.start(); o.stop(audioCtx.currentTime + 0.5);
+            initAudio();
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.type = 'square';
+            osc.frequency.value = 440;
+            gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.5);
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            osc.start();
+            osc.stop(audioCtx.currentTime + 0.5);
+        }
+
+        function playExhaustPop() {
+            initAudio();
+            const buf = audioCtx.createBuffer(1, 0.4 * audioCtx.sampleRate, audioCtx.sampleRate);
+            const d = buf.getChannelData(0);
+            for (let i = 0; i < d.length; i++) {
+                d[i] = (Math.random() * 2 - 1) * Math.exp(-i / audioCtx.sampleRate * 12) * 0.5;
+            }
+            const src = audioCtx.createBufferSource(); src.buffer = buf;
+            const g = audioCtx.createGain();
+            g.gain.setValueAtTime(0.6, audioCtx.currentTime);
+            g.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.4);
+            src.connect(g); g.connect(audioCtx.destination); src.start();
         }
 
         // ============ PARA ============
@@ -282,11 +420,20 @@
             document.getElementById('distance-display').textContent = Math.floor(totalDist);
         }
         updateMoney();
-        function saveProgress() { localStorage.setItem('motorRiderMoney', Math.floor(money)); localStorage.setItem('motorRiderDistance', totalDist); }
+
+        function saveProgress() {
+            localStorage.setItem('motorRiderMoney', Math.floor(money));
+            localStorage.setItem('motorRiderDistance', totalDist);
+        }
 
         // ============ INPUT ============
         const input = { gas: false, brake: false, wheelie: false, horn: false, steerLeft: false, steerRight: false };
-        window.setInput = function(name, val) { input[name] = val; if (name === 'horn' && val) playHorn(); };
+        window.setInput = function(name, val) {
+            input[name] = val;
+            if (name === 'gas' && val) { initAudio(); startEngineSound(); }
+            if (name === 'horn' && val) playHorn();
+        };
+
         const keys = {};
         window.addEventListener('keydown', e => { keys[e.key.toLowerCase()] = true; updateKeys(); });
         window.addEventListener('keyup', e => { keys[e.key.toLowerCase()] = false; updateKeys(); });
@@ -296,7 +443,9 @@
             input.steerLeft = keys['a'] || keys['arrowleft'] || false;
             input.steerRight = keys['d'] || keys['arrowright'] || false;
             input.wheelie = keys['shift'] || false;
-            if (keys['h']) playHorn();
+            input.horn = keys['h'] || false;
+            if (input.gas) { initAudio(); startEngineSound(); }
+            if (input.horn) playHorn();
         }
 
         // ============ FİZİK ============
@@ -304,42 +453,82 @@
         const gearRatios = [0, 30, 55, 85, 120, 155, 200];
 
         function updatePhysics(dt) {
-            if (input.gas) { if (bike.speed < 0) bike.speed += 50*dt; else if (bike.speed < 200) bike.speed += 40*(settings.sensitivity/100)*dt; }
-            if (input.brake) { if (bike.speed > 0) bike.speed -= 70*dt; else if (bike.speed > -30) bike.speed -= 30*dt; }
-            if (!input.gas && !input.brake) { if (bike.speed > 0) bike.speed -= 0.8*dt; else if (bike.speed < 0) bike.speed += 0.8*dt; }
-            bike.speed = Math.max(-30, Math.min(200, bike.speed));
+            if (input.gas && bike.speed < bike.maxSpeed) {
+                bike.speed += 40 * (settings.sensitivity / 100) * dt;
+            }
+            if (input.brake) {
+                if (bike.speed > 0) {
+                    bike.speed -= 70 * dt;
+                } else if (bike.speed <= 0 && bike.speed > -30) {
+                    bike.speed -= 30 * dt;
+                }
+            }
+            if (!input.gas && !input.brake) {
+                if (bike.speed > 0) bike.speed -= 0.8 * dt;
+                else if (bike.speed < 0) bike.speed += 0.8 * dt;
+            }
+
+            bike.speed = Math.max(-30, Math.min(bike.maxSpeed, bike.speed));
             if (Math.abs(bike.speed) < 0.1) bike.speed = 0;
 
             if (bike.speed < 1) bike.gear = 0;
-            else for (let g = 6; g >= 1; g--) if (bike.speed >= gearRatios[g-1]) { bike.gear = g; break; }
+            else {
+                for (let g = 6; g >= 1; g--) {
+                    if (bike.speed >= gearRatios[g - 1]) { bike.gear = g; break; }
+                }
+            }
             if (bike.speed < 0) bike.gear = 0;
 
-            const absSpd = Math.abs(bike.speed);
-            bike.rpm = bike.gear === 0 ? (input.gas ? 25 : 5) : 15 + ((absSpd - gearRatios[bike.gear-1]) / (gearRatios[bike.gear] - gearRatios[bike.gear-1])) * 85;
+            const absSpeed = Math.abs(bike.speed);
+            if (bike.gear === 0) bike.rpm = input.gas ? 25 : 5;
+            else {
+                const ratio = (absSpeed - gearRatios[bike.gear - 1]) / (gearRatios[bike.gear] - gearRatios[bike.gear - 1]);
+                bike.rpm = 15 + ratio * 85;
+            }
             bike.rpm = Math.max(0, Math.min(100, bike.rpm));
 
-            if (input.wheelie && bike.speed > 20) bike.wheelieAngle += 45*dt;
-            else bike.wheelieAngle *= 0.85;
+            if (input.wheelie && bike.speed > 20) {
+                bike.wheelieAngle += 45 * dt;
+            } else {
+                bike.wheelieAngle *= 0.85;
+            }
             bike.wheelieAngle = Math.max(0, Math.min(45, bike.wheelieAngle));
 
-            // SAĞ-SOL SABİT (bırakınca ortaya dönmez)
-            if (input.steerLeft) { bike.lateralPos -= 6*dt; bike.leanAngle = Math.max(-25, bike.leanAngle-50*dt); }
-            else if (input.steerRight) { bike.lateralPos += 6*dt; bike.leanAngle = Math.min(25, bike.leanAngle+50*dt); }
-            else { bike.leanAngle *= 0.9; }
+            // 🔧 SAĞ-SOL: BIRAKINCA ORTAYA DÖNMEZ!
+            if (input.steerLeft) {
+                bike.lateralPos -= 6 * dt;
+                bike.leanAngle = Math.max(-25, bike.leanAngle - 50 * dt);
+            } else if (input.steerRight) {
+                bike.lateralPos += 6 * dt;
+                bike.leanAngle = Math.min(25, bike.leanAngle + 50 * dt);
+            } else {
+                bike.leanAngle *= 0.9;
+                // lateralPos *= 0.92; ← BU SATIR SİLİNDİ! Artık ortaya dönmez!
+            }
             bike.lateralPos = Math.max(-3.5, Math.min(3.5, bike.lateralPos));
 
-            const d = (Math.abs(bike.speed)/3.6)*dt;
-            totalDist += d; saveCounter += d;
-            money += d*0.05;
+            const dist = (Math.abs(bike.speed) / 3.6) * dt;
+            totalDist += dist;
+            saveCounter += dist;
+            money += dist * 0.05;
+
             if (saveCounter > 50) { saveProgress(); saveCounter = 0; }
+
+            updateEngineSound(Math.abs(bike.speed), bike.rpm);
+
+            if (bike.rpm > 70 && Math.abs(bike.speed) > 50 && Math.random() < dt * 2) {
+                playExhaustPop();
+            }
         }
 
         function updateHUD() {
             document.getElementById('speed-display').textContent = Math.floor(Math.abs(bike.speed));
-            document.getElementById('gear-display').textContent = bike.speed < -0.5 ? 'R' : (bike.gear === 0 ? 'N' : bike.gear);
-            const rf = document.getElementById('rpm-fill');
-            rf.style.width = bike.rpm + '%';
-            rf.style.background = bike.rpm > 90 ? '#ff0000' : bike.rpm > 70 ? 'linear-gradient(90deg, #ffd700, #ff4d00)' : 'linear-gradient(90deg, #00ff88, #ffd700)';
+            document.getElementById('gear-display').textContent = bike.speed < 0 ? 'R' : (bike.gear === 0 ? 'N' : bike.gear);
+            const rpmFill = document.getElementById('rpm-fill');
+            rpmFill.style.width = bike.rpm + '%';
+            if (bike.rpm > 90) rpmFill.style.background = '#ff0000';
+            else if (bike.rpm > 70) rpmFill.style.background = 'linear-gradient(90deg, #ffd700, #ff4d00)';
+            else rpmFill.style.background = 'linear-gradient(90deg, #00ff88, #ffd700)';
             updateMoney();
         }
 
@@ -349,30 +538,38 @@
         function animate() {
             requestAnimationFrame(animate);
             const dt = Math.min(clock.getDelta(), 0.1);
-            updatePhysics(dt); updateHUD();
+            updatePhysics(dt);
+            updateHUD();
 
-            // YOL: -bike.speed = W basınca yol GERİYE akar (ileri gidiyor gibi)
-            const moveSpeed = -bike.speed * dt * 0.5;
-            segments.forEach(seg => {
+            const moveSpeed = bike.speed * dt * 0.5;
+            segments.forEach((seg, i) => {
                 seg.position.z += moveSpeed;
-                if (seg.position.z > segLen) seg.position.z -= totalSegs * segLen;
-                if (seg.position.z < -segLen * totalSegs) seg.position.z += totalSegs * segLen;
+                if (seg.position.z > segLen) {
+                    seg.position.z -= totalSegs * segLen;
+                }
+                if (seg.position.z < -segLen * (totalSegs - 1)) {
+                    seg.position.z += totalSegs * segLen;
+                }
             });
 
             bikeGroup.position.x = bike.lateralPos;
-            bikeGroup.rotation.x = -bike.wheelieAngle * (Math.PI/180);
-            bikeGroup.rotation.z = -bike.leanAngle * (Math.PI/180);
+            bikeGroup.position.z = 0;
+            bikeGroup.rotation.x = -bike.wheelieAngle * (Math.PI / 180);
+            bikeGroup.rotation.z = -bike.leanAngle * (Math.PI / 180);
             bikeGroup.position.y = bike.wheelieAngle * 0.015;
 
-            // Tekerlek: -bike.speed = doğru yönde döner
-            const wheelRot = -bike.speed * dt * 0.5;
-            ft.rotation.x += wheelRot;
-            rt.rotation.x += wheelRot;
+            const wheelRot = bike.speed * dt * 0.5;
+            frontWheel.children[0].rotation.x += wheelRot;
+            rearWheel.children[0].rotation.x += wheelRot;
 
-            camera.position.x += (bike.lateralPos*0.4 - camera.position.x)*3*dt;
-            camera.position.y += (3.5 + Math.abs(bike.speed)*0.008 - camera.position.y)*3*dt;
-            camera.position.z += (-5 - Math.abs(bike.speed)*0.02 - camera.position.z)*3*dt;
-            camera.lookAt(bike.lateralPos*0.6, 1.2, 10);
+            // 📷 KAMERA DÜZELTİLDİ
+            const targetCamX = bike.lateralPos * 0.4;
+            const targetCamY = 3.5 + Math.abs(bike.speed) * 0.008;
+            const targetCamZ = -5 - Math.abs(bike.speed) * 0.02;
+            camera.position.x += (targetCamX - camera.position.x) * 3 * dt;
+            camera.position.y += (targetCamY - camera.position.y) * 3 * dt;
+            camera.position.z += (targetCamZ - camera.position.z) * 3 * dt;
+            camera.lookAt(bike.lateralPos * 0.6, 1.2 + bike.wheelieAngle * 0.02, 10);
 
             renderer.render(scene, camera);
         }
@@ -382,12 +579,15 @@
             camera.updateProjectionMatrix();
             renderer.setSize(window.innerWidth, window.innerHeight);
         });
-        window.addEventListener('beforeunload', saveProgress);
-        document.addEventListener('click', initAudio, { once: true });
-        document.addEventListener('touchstart', initAudio, { once: true });
+
+        window.addEventListener('beforeunload', () => { saveProgress(); stopEngineSound(); });
+
+        document.addEventListener('click', () => { initAudio(); }, { once: true });
+        document.addEventListener('touchstart', () => { initAudio(); }, { once: true });
 
         updateHUD();
         animate();
+        console.log('🏍️ Hazır! Renk:', bikeColor, '| Sağ-sol sabit | Kamera düzeltildi');
     </script>
 </body>
 </html>
