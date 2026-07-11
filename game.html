@@ -18,9 +18,8 @@
         #btns button { width: 65px; height: 65px; border-radius: 50%; border: 3px solid rgba(255,255,255,0.5); font-size: 28px; color: #fff; cursor: pointer; }
         #gas-btn { background: rgba(0,180,0,0.4); border-color: #0f0; }
         #brake-btn { background: rgba(180,0,0,0.4); border-color: #f00; }
-        #wheelie-btn { position: fixed; right: 20px; bottom: 120px; z-index: 10; width: 45px; height: 45px; border-radius: 50%; background: rgba(255,215,0,0.2); border: 2px solid rgba(255,215,0,0.4); font-size: 20px; color: #ffd700; cursor: pointer; }
         #horn-btn { position: fixed; left: 20px; bottom: 120px; z-index: 10; width: 45px; height: 45px; border-radius: 50%; background: rgba(255,255,0,0.2); border: 2px solid rgba(255,255,0,0.4); font-size: 20px; color: #ff0; cursor: pointer; }
-        .pc-mode #btns, .pc-mode #wheelie-btn, .pc-mode #horn-btn { display: none !important; }
+        .pc-mode #btns, .pc-mode #horn-btn { display: none !important; }
     </style>
 </head>
 <body>
@@ -34,7 +33,6 @@
         <button id="brake-btn">🔽</button>
         <button id="gas-btn">🔼</button>
     </div>
-    <button id="wheelie-btn">⬆️</button>
     <button id="horn-btn">📢</button>
 
     <script src="https://cdn.jsdelivr.net/npm/three@0.150.0/build/three.min.js"></script>
@@ -90,7 +88,7 @@
 
     scene.add(bike);
 
-    // YOL (sadece yol + ağaç)
+    // YOL
     var roadGroup = new THREE.Group(); scene.add(roadGroup);
     var roadMat = new THREE.MeshStandardMaterial({ color: 0x444444, roughness: 0.8 });
     var grassMat = new THREE.MeshStandardMaterial({ color: 0x2d5a1e, roughness: 0.9 });
@@ -118,7 +116,7 @@
         roadGroup.add(g);
     }
 
-    // Korna sesi
+    // SADECE KORNA
     var audioCtx = null;
     function initAudio() { if (!audioCtx) try { audioCtx = new (window.AudioContext || window.webkitAudioContext)(); } catch(e) {} }
     function playHorn() {
@@ -137,8 +135,8 @@
     var money = 0, dist = 0;
     try { money = parseInt(localStorage.getItem('motorRiderMoney')) || 0; } catch(e) {}
     try { dist = parseFloat(localStorage.getItem('motorRiderDistance')) || 0; } catch(e) {}
-    var lateralPos = 0, leanAngle = 0, wheelieAngle = 0;
-    var gasOn = false, brakeOn = false, wheelieOn = false;
+    var lateralPos = 0, leanAngle = 0;
+    var gasOn = false, brakeOn = false;
     var keys = {};
     var gears = [0, 30, 55, 85, 120, 155, 200];
 
@@ -146,8 +144,6 @@
     document.getElementById('gas-btn').addEventListener('touchend', function() { gasOn = false; });
     document.getElementById('brake-btn').addEventListener('touchstart', function(e) { e.preventDefault(); brakeOn = true; });
     document.getElementById('brake-btn').addEventListener('touchend', function() { brakeOn = false; });
-    document.getElementById('wheelie-btn').addEventListener('touchstart', function(e) { e.preventDefault(); wheelieOn = true; });
-    document.getElementById('wheelie-btn').addEventListener('touchend', function() { wheelieOn = false; });
     document.getElementById('horn-btn').addEventListener('touchstart', function(e) { e.preventDefault(); playHorn(); });
 
     window.addEventListener('keydown', function(e) { keys[e.key.toLowerCase()] = true; if (keys['h']) playHorn(); });
@@ -157,7 +153,6 @@
         return {
             gas: gasOn || keys['w'] || keys['arrowup'] || false,
             brake: brakeOn || keys['s'] || keys['arrowdown'] || false,
-            wheelie: wheelieOn || keys['shift'] || false,
             left: keys['a'] || keys['arrowleft'] || false,
             right: keys['d'] || keys['arrowright'] || false
         };
@@ -184,10 +179,6 @@
         rpm = gear === 0 ? (input.gas ? 0.25 : 0.05) : 0.15 + ((absSpd - gears[gear-1]) / (gears[gear] - gears[gear-1])) * 0.85;
         rpm = Math.max(0, Math.min(1, rpm));
 
-        if (input.wheelie && speed > 20) wheelieAngle += 45*dt;
-        else wheelieAngle *= 0.85;
-        wheelieAngle = Math.max(0, Math.min(45, wheelieAngle));
-
         if (input.left) { lateralPos -= 5*dt; leanAngle = Math.max(-25, leanAngle-45*dt); }
         else if (input.right) { lateralPos += 5*dt; leanAngle = Math.min(25, leanAngle+45*dt); }
         else { leanAngle *= 0.85; }
@@ -211,9 +202,7 @@
         }
 
         bike.position.x = lateralPos;
-        bike.rotation.x = -wheelieAngle * (Math.PI/180);
         bike.rotation.z = -leanAngle * (Math.PI/180);
-        bike.position.y = wheelieAngle * 0.015;
 
         var wr = speed * dt * 0.5;
         ft.rotation.x += wr;
