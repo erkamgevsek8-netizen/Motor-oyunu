@@ -4,9 +4,14 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <title>Motor Rider</title>
-    
-    <!-- CSS burada -->
     <style>
+        :root {
+            --bg: #0a0a0a;
+            --accent: #ff4d00;
+            --text: #ffffff;
+            --gold: #ffd700;
+        }
+
         * {
             margin: 0;
             padding: 0;
@@ -22,7 +27,6 @@
             user-select: none;
             -webkit-user-select: none;
             -webkit-tap-highlight-color: transparent;
-            touch-action: manipulation;
         }
 
         #three-canvas {
@@ -40,16 +44,12 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background: linear-gradient(
-                180deg,
-                transparent 50%,
-                rgba(0, 0, 0, 0.7) 80%,
-                rgba(0, 0, 0, 0.95) 100%
-            );
+            background: linear-gradient(180deg, transparent 50%, rgba(0,0,0,0.7) 80%, rgba(0,0,0,0.95) 100%);
             z-index: 2;
             pointer-events: none;
         }
 
+        /* Logo */
         .game-title {
             position: fixed;
             top: 40px;
@@ -59,24 +59,49 @@
         }
 
         .game-title h1 {
-            font-size: clamp(36px, 7vw, 64px);
+            font-size: clamp(32px, 6vw, 56px);
             font-weight: 900;
-            color: #ffffff;
+            color: #fff;
             text-transform: uppercase;
-            letter-spacing: 4px;
+            letter-spacing: 3px;
             line-height: 1;
-            text-shadow: 0 0 40px rgba(255, 77, 0, 0.6), 0 4px 8px rgba(0,0,0,0.8);
+            text-shadow: 0 0 40px rgba(255,77,0,0.6);
         }
 
         .game-title .subtitle {
-            font-size: clamp(14px, 2.5vw, 20px);
+            font-size: clamp(12px, 2vw, 16px);
             color: #ff4d00;
-            letter-spacing: 8px;
+            letter-spacing: 6px;
             font-weight: 300;
-            margin-top: 5px;
-            text-shadow: 0 0 20px rgba(255, 77, 0, 0.8);
+            margin-top: 4px;
+            text-shadow: 0 0 20px rgba(255,77,0,0.8);
         }
 
+        /* Para göstergesi */
+        .money-display {
+            position: fixed;
+            top: 40px;
+            right: 30px;
+            z-index: 10;
+            background: rgba(20,20,20,0.85);
+            backdrop-filter: blur(20px);
+            border: 2px solid rgba(255,215,0,0.4);
+            border-radius: 30px;
+            padding: 12px 22px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: #ffd700;
+            font-weight: 700;
+            font-size: clamp(16px, 2.5vw, 20px);
+            letter-spacing: 1px;
+        }
+
+        .money-display .coin {
+            font-size: 24px;
+        }
+
+        /* Menü butonları */
         .menu-buttons {
             position: fixed;
             right: 30px;
@@ -92,29 +117,28 @@
             display: flex;
             align-items: center;
             justify-content: flex-end;
-            gap: 15px;
-            background: rgba(20, 20, 20, 0.85);
+            gap: 14px;
+            background: rgba(20,20,20,0.85);
             backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
-            border: 2px solid rgba(255, 77, 0, 0.4);
+            border: 2px solid rgba(255,77,0,0.4);
             border-radius: 50px;
             padding: 14px 28px;
             cursor: pointer;
             transition: all 0.35s;
-            color: #ffffff;
-            font-size: clamp(15px, 2.5vw, 19px);
+            color: #fff;
+            font-size: clamp(14px, 2.2vw, 17px);
             font-weight: 700;
             letter-spacing: 2px;
             text-transform: uppercase;
-            min-width: 160px;
+            min-width: 150px;
             text-decoration: none;
         }
 
         .menu-btn:hover {
-            background: rgba(40, 40, 40, 0.9);
+            background: rgba(40,40,40,0.9);
             border-color: #ff4d00;
             transform: translateX(-8px) scale(1.03);
-            box-shadow: 0 10px 40px rgba(255, 77, 0, 0.3);
+            box-shadow: 0 10px 40px rgba(255,77,0,0.3);
         }
 
         .menu-btn:active {
@@ -122,84 +146,100 @@
         }
 
         .menu-btn .icon {
-            font-size: clamp(20px, 3vw, 26px);
-            width: 45px;
-            height: 45px;
+            font-size: clamp(18px, 2.5vw, 24px);
+            width: 42px;
+            height: 42px;
             display: flex;
             align-items: center;
             justify-content: center;
-            background: rgba(255, 77, 0, 0.2);
+            background: rgba(255,77,0,0.2);
             border-radius: 50%;
         }
 
         .menu-btn.main-btn {
             padding: 18px 35px;
             border-color: #ff4d00;
-            box-shadow: 0 0 30px rgba(255, 77, 0, 0.4);
-            animation: pulse-btn 2.5s infinite;
+            box-shadow: 0 0 30px rgba(255,77,0,0.4);
+            animation: pulse 2.5s infinite;
+            font-size: clamp(16px, 2.5vw, 20px);
         }
 
-        @keyframes pulse-btn {
-            0%, 100% { box-shadow: 0 0 30px rgba(255, 77, 0, 0.4); }
-            50% { box-shadow: 0 0 60px rgba(255, 77, 0, 0.7); }
+        @keyframes pulse {
+            0%, 100% { box-shadow: 0 0 30px rgba(255,77,0,0.4); }
+            50% { box-shadow: 0 0 60px rgba(255,77,0,0.7); }
         }
 
         .menu-btn.main-btn .icon {
             background: #ff4d00;
             color: #000;
-            font-size: 28px;
         }
 
-        .speed-display {
+        /* Motor teknik bilgileri */
+        .bike-info {
             position: fixed;
             left: 30px;
             bottom: 60px;
             z-index: 10;
             pointer-events: none;
-            opacity: 0.4;
+            opacity: 0.5;
+            color: #fff;
         }
 
-        .speed-display .speed-number {
-            font-size: clamp(50px, 10vw, 90px);
+        .bike-info .model {
+            font-size: clamp(20px, 3vw, 28px);
             font-weight: 900;
             color: #ff4d00;
-            line-height: 1;
         }
 
-        .speed-display .speed-unit {
-            font-size: clamp(14px, 2vw, 18px);
-            color: #cccccc;
-            letter-spacing: 2px;
+        .bike-info .specs {
+            font-size: clamp(11px, 1.5vw, 14px);
+            color: #aaa;
+            letter-spacing: 1px;
         }
 
+        /* Versiyon */
         .version {
             position: fixed;
             left: 30px;
-            top: 130px;
+            top: 120px;
             z-index: 10;
             pointer-events: none;
-            color: rgba(255, 255, 255, 0.3);
-            font-size: 12px;
-            letter-spacing: 3px;
+            color: rgba(255,255,255,0.3);
+            font-size: 11px;
+            letter-spacing: 2px;
         }
 
         @media (max-width: 600px) {
             .menu-buttons {
-                right: 15px;
-                bottom: 40px;
+                right: 12px;
+                bottom: 35px;
                 gap: 8px;
             }
             .menu-btn {
-                padding: 12px 22px;
-                min-width: 130px;
-                font-size: 14px;
+                padding: 10px 20px;
+                min-width: 120px;
+                font-size: 13px;
+                gap: 10px;
             }
             .menu-btn.main-btn {
-                padding: 15px 28px;
+                padding: 14px 25px;
             }
             .game-title {
-                top: 25px;
-                left: 20px;
+                top: 20px;
+                left: 15px;
+            }
+            .game-title h1 {
+                font-size: 26px;
+            }
+            .money-display {
+                top: 20px;
+                right: 15px;
+                padding: 8px 16px;
+                font-size: 14px;
+            }
+            .bike-info {
+                left: 15px;
+                bottom: 35px;
             }
         }
     </style>
@@ -209,22 +249,32 @@
     <canvas id="three-canvas"></canvas>
     <div class="overlay"></div>
 
+    <!-- Logo -->
     <div class="game-title">
         <h1>MOTOR<br>RIDER</h1>
-        <div class="subtitle">HIGHWAY LEGENDS</div>
+        <div class="subtitle">STREET LEGENDS</div>
     </div>
 
-    <div class="version">v1.0 BETA</div>
+    <!-- Versiyon -->
+    <div class="version">v2.0 | MT-07 EDITION</div>
 
-    <div class="speed-display">
-        <div class="speed-number">220</div>
-        <div class="speed-unit">KM/H MAX</div>
+    <!-- Para -->
+    <div class="money-display">
+        <span class="coin">🪙</span>
+        <span id="money-amount">12,500</span>
     </div>
 
+    <!-- Motor bilgisi -->
+    <div class="bike-info">
+        <div class="model">YAMAHA MT-07</div>
+        <div class="specs">689cc | 75 HP | 180 km/h</div>
+    </div>
+
+    <!-- Menü -->
     <div class="menu-buttons">
         <a href="game.html" class="menu-btn main-btn">
             <span class="icon">▶</span>
-            BAŞLA
+            SÜRÜŞE BAŞLA
         </a>
         <a href="garage.html" class="menu-btn">
             <span class="icon">🔧</span>
@@ -245,134 +295,418 @@
         }
     </script>
 
-    <!-- JavaScript burada -->
     <script type="module">
         import * as THREE from 'three';
 
+        // ============ PARA SİSTEMİ ============
+        let money = parseInt(localStorage.getItem('motorRiderMoney')) || 12500;
+        document.getElementById('money-amount').textContent = money.toLocaleString('tr-TR');
+
+        // ============ THREE.JS KURULUM ============
         const canvas = document.getElementById('three-canvas');
         const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
         renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
         renderer.setSize(window.innerWidth, window.innerHeight);
         renderer.shadowMap.enabled = true;
+        renderer.shadowMap.type = THREE.PCFSoftShadowMap;
         renderer.toneMapping = THREE.ACESFilmicToneMapping;
-        renderer.toneMappingExposure = 1.2;
+        renderer.toneMappingExposure = 1.3;
 
         const scene = new THREE.Scene();
         scene.background = new THREE.Color('#0a0a0a');
-        scene.fog = new THREE.Fog('#0a0a0a', 5, 25);
+        scene.fog = new THREE.Fog('#0a0a0a', 6, 30);
 
-        const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.5, 50);
-        camera.position.set(3.5, 1.8, 5);
-        camera.lookAt(0, 0.8, 0);
+        const camera = new THREE.PerspectiveCamera(55, window.innerWidth / window.innerHeight, 0.5, 50);
+        camera.position.set(3.5, 2.0, 5.5);
+        camera.lookAt(0, 0.7, 0);
 
-        // Işıklar
-        const keyLight = new THREE.DirectionalLight('#ff9966', 4);
-        keyLight.position.set(5, 8, 3);
+        // ============ IŞIKLANDIRMA (Stüdyo kalitesi) ============
+        const keyLight = new THREE.DirectionalLight('#ffffff', 5);
+        keyLight.position.set(8, 10, 5);
+        keyLight.castShadow = true;
+        keyLight.shadow.mapSize.width = 2048;
+        keyLight.shadow.mapSize.height = 2048;
+        keyLight.shadow.camera.near = 0.5;
+        keyLight.shadow.camera.far = 40;
+        keyLight.shadow.bias = -0.0001;
         scene.add(keyLight);
-        
-        const fillLight = new THREE.DirectionalLight('#4488ff', 1.5);
-        fillLight.position.set(-3, 2, -2);
-        scene.add(fillLight);
-        
-        scene.add(new THREE.AmbientLight('#1a1a2e', 0.6));
 
-        // Zemin
-        const ground = new THREE.Mesh(
-            new THREE.PlaneGeometry(30, 30),
-            new THREE.MeshStandardMaterial({ color: '#1a1a1a', roughness: 0.4, metalness: 0.3 })
-        );
+        const fillLight = new THREE.DirectionalLight('#4488cc', 2);
+        fillLight.position.set(-5, 3, -3);
+        scene.add(fillLight);
+
+        const rimLight = new THREE.DirectionalLight('#ff6633', 3);
+        rimLight.position.set(0, 1, -5);
+        scene.add(rimLight);
+
+        const topLight = new THREE.DirectionalLight('#ffffff', 2);
+        topLight.position.set(0, 8, 0);
+        scene.add(topLight);
+
+        scene.add(new THREE.AmbientLight('#1a1a2e', 0.5));
+
+        // ============ ZEMİN (Showroom tarzı) ============
+        const groundGeom = new THREE.CircleGeometry(8, 64);
+        const groundMat = new THREE.MeshStandardMaterial({ 
+            color: '#1a1a1a', 
+            roughness: 0.3, 
+            metalness: 0.5 
+        });
+        const ground = new THREE.Mesh(groundGeom, groundMat);
         ground.rotation.x = -Math.PI / 2;
         ground.position.y = -1.5;
+        ground.receiveShadow = true;
         scene.add(ground);
 
-        // MOTOR MODELİ
+        // Platform
+        const platformGeom = new THREE.CylinderGeometry(1.5, 1.8, 0.1, 32);
+        const platformMat = new THREE.MeshStandardMaterial({ 
+            color: '#222222', 
+            roughness: 0.2, 
+            metalness: 0.8 
+        });
+        const platform = new THREE.Mesh(platformGeom, platformMat);
+        platform.position.y = -1.45;
+        platform.receiveShadow = true;
+        scene.add(platform);
+
+        // ============ MT-07 STİLİ MOTOR MODELİ ============
         const bikeGroup = new THREE.Group();
-        const bodyMat = new THREE.MeshStandardMaterial({ color: '#1a1a1a', roughness: 0.2, metalness: 0.9 });
-        const redMat = new THREE.MeshStandardMaterial({ color: '#ff3300', roughness: 0.15, metalness: 0.8 });
-        const chromeMat = new THREE.MeshStandardMaterial({ color: '#cccccc', roughness: 0.1, metalness: 1.0 });
-        const tireMat = new THREE.MeshStandardMaterial({ color: '#111111', roughness: 0.9, metalness: 0.1 });
-        const glassMat = new THREE.MeshStandardMaterial({ color: '#ffaa00', roughness: 0.2, metalness: 0.1, emissive: '#331100', emissiveIntensity: 0.5 });
 
-        // Şasi
-        const frame = new THREE.Mesh(new THREE.BoxGeometry(0.3, 0.3, 1.8), bodyMat);
-        frame.position.y = 0.7;
-        bikeGroup.add(frame);
+        // Malzemeler
+        const matteBlack = new THREE.MeshStandardMaterial({ color: '#1a1a1a', roughness: 0.3, metalness: 0.6 });
+        const glossBlack = new THREE.MeshStandardMaterial({ color: '#111111', roughness: 0.1, metalness: 0.9 });
+        const darkGray = new THREE.MeshStandardMaterial({ color: '#2a2a2a', roughness: 0.2, metalness: 0.7 });
+        const cyanAccent = new THREE.MeshStandardMaterial({ color: '#00d4ff', roughness: 0.1, metalness: 0.9, emissive: '#001a22', emissiveIntensity: 0.3 });
+        const chromeMat = new THREE.MeshStandardMaterial({ color: '#d0d0d0', roughness: 0.1, metalness: 1.0 });
+        const tireMat = new THREE.MeshStandardMaterial({ color: '#0a0a0a', roughness: 0.9, metalness: 0.05 });
+        const goldMat = new THREE.MeshStandardMaterial({ color: '#d4a017', roughness: 0.15, metalness: 0.9, emissive: '#1a1000', emissiveIntensity: 0.2 });
+        const seatMat = new THREE.MeshStandardMaterial({ color: '#1a1a1a', roughness: 0.7, metalness: 0.1 });
+        const glassMat = new THREE.MeshStandardMaterial({ color: '#ffffff', roughness: 0.1, metalness: 0.1, emissive: '#ffffff', emissiveIntensity: 0.8 });
+        const frameMat = new THREE.MeshStandardMaterial({ color: '#00d4ff', roughness: 0.15, metalness: 0.85, emissive: '#001a22', emissiveIntensity: 0.2 });
 
-        // Motor
-        const engine = new THREE.Mesh(new THREE.BoxGeometry(0.35, 0.4, 0.6), chromeMat);
-        engine.position.set(0, 0.55, -0.1);
-        bikeGroup.add(engine);
+        // --- Ana şasi (MT-07 trellis frame tarzı) ---
+        const mainFrame = new THREE.Mesh(new THREE.BoxGeometry(0.25, 0.25, 1.6), frameMat);
+        mainFrame.position.set(0, 0.75, 0.1);
+        mainFrame.castShadow = true;
+        bikeGroup.add(mainFrame);
 
-        // Depo
-        const tank = new THREE.Mesh(new THREE.CylinderGeometry(0.22, 0.25, 0.7, 16), redMat);
-        tank.rotation.x = Math.PI / 2;
-        tank.position.set(0, 0.9, 0.3);
+        // Alt frame
+        const lowerFrame = new THREE.Mesh(new THREE.BoxGeometry(0.15, 0.15, 0.8), frameMat);
+        lowerFrame.position.set(0, 0.4, -0.2);
+        lowerFrame.castShadow = true;
+        bikeGroup.add(lowerFrame);
+
+        // --- Motor bloğu (paralel twin) ---
+        const engineBlock = new THREE.Mesh(new THREE.BoxGeometry(0.4, 0.45, 0.55), darkGray);
+        engineBlock.position.set(0, 0.5, -0.05);
+        engineBlock.castShadow = true;
+        bikeGroup.add(engineBlock);
+
+        // Silindir kafası
+        const cylinderHead = new THREE.Mesh(new THREE.BoxGeometry(0.35, 0.2, 0.5), chromeMat);
+        cylinderHead.position.set(0, 0.78, -0.05);
+        cylinderHead.castShadow = true;
+        bikeGroup.add(cylinderHead);
+
+        // Motor kanatçıkları (soğutma)
+        for (let i = 0; i < 6; i++) {
+            const finGeom = new THREE.BoxGeometry(0.43, 0.03, 0.5);
+            const fin = new THREE.Mesh(finGeom, chromeMat);
+            fin.position.set(0, 0.3 + i * 0.08, -0.05);
+            fin.castShadow = true;
+            bikeGroup.add(fin);
+        }
+
+        // --- Benzin deposu (MT-07 tarzı agresif) ---
+        const tankShape = new THREE.Shape();
+        tankShape.moveTo(-0.22, -0.3);
+        tankShape.bezierCurveTo(-0.22, 0.2, -0.15, 0.35, 0, 0.38);
+        tankShape.bezierCurveTo(0.15, 0.35, 0.22, 0.2, 0.22, -0.3);
+        tankShape.lineTo(-0.22, -0.3);
+        
+        const extrudeSettings = { steps: 1, depth: 0.7, bevelEnabled: true, bevelThickness: 0.05, bevelSize: 0.05, bevelSegments: 3 };
+        const tankGeom = new THREE.ExtrudeGeometry(tankShape, extrudeSettings);
+        const tank = new THREE.Mesh(tankGeom, cyanAccent);
+        tank.rotation.x = -Math.PI / 2;
+        tank.position.set(0, 0.95, 0.1);
+        tank.castShadow = true;
         bikeGroup.add(tank);
 
-        // Sele
-        const seat = new THREE.Mesh(new THREE.BoxGeometry(0.28, 0.15, 0.6), new THREE.MeshStandardMaterial({ color: '#1a1a1a', roughness: 0.8 }));
-        seat.position.set(0, 0.95, -0.5);
-        bikeGroup.add(seat);
+        // Depo kapağı
+        const tankCap = new THREE.Mesh(new THREE.CylinderGeometry(0.06, 0.06, 0.04, 16), chromeMat);
+        tankCap.position.set(0, 1.18, 0.25);
+        bikeGroup.add(tankCap);
 
-        // Far
-        const headlight = new THREE.Mesh(new THREE.CylinderGeometry(0.12, 0.12, 0.08, 16), glassMat);
-        headlight.rotation.x = Math.PI / 2;
-        headlight.position.set(0, 0.9, 1.05);
+        // --- Sele (iki parçalı) ---
+        const frontSeat = new THREE.Mesh(new THREE.BoxGeometry(0.3, 0.12, 0.35), seatMat);
+        frontSeat.position.set(0, 0.98, -0.4);
+        frontSeat.castShadow = true;
+        bikeGroup.add(frontSeat);
+
+        const rearSeat = new THREE.Mesh(new THREE.BoxGeometry(0.28, 0.1, 0.3), seatMat);
+        rearSeat.position.set(0, 1.02, -0.75);
+        rearSeat.castShadow = true;
+        bikeGroup.add(rearSeat);
+
+        // --- Arka kuyruk ---
+        const tail = new THREE.Mesh(new THREE.BoxGeometry(0.2, 0.15, 0.5), cyanAccent);
+        tail.position.set(0, 0.8, -1.05);
+        tail.rotation.x = 0.2;
+        tail.castShadow = true;
+        bikeGroup.add(tail);
+
+        // --- Gidon (MT-07 tarzı düz) ---
+        const handlebarRiser = new THREE.Mesh(new THREE.CylinderGeometry(0.03, 0.04, 0.3, 8), chromeMat);
+        handlebarRiser.position.set(0, 1.15, 0.8);
+        bikeGroup.add(handlebarRiser);
+
+        const handlebar = new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.04, 0.75, 8), chromeMat);
+        handlebar.rotation.z = Math.PI / 2;
+        handlebar.position.set(0, 1.3, 0.82);
+        handlebar.castShadow = true;
+        bikeGroup.add(handlebar);
+
+        // Gidon uçları (grip)
+        const gripGeom = new THREE.CylinderGeometry(0.045, 0.045, 0.12, 8);
+        const leftGrip = new THREE.Mesh(gripGeom, seatMat);
+        leftGrip.rotation.z = Math.PI / 2;
+        leftGrip.position.set(-0.38, 1.3, 0.82);
+        bikeGroup.add(leftGrip);
+        const rightGrip = new THREE.Mesh(gripGeom, seatMat);
+        rightGrip.rotation.z = Math.PI / 2;
+        rightGrip.position.set(0.38, 1.3, 0.82);
+        bikeGroup.add(rightGrip);
+
+        // Ayna
+        const mirrorStick = new THREE.Mesh(new THREE.CylinderGeometry(0.015, 0.015, 0.25, 8), chromeMat);
+        mirrorStick.position.set(-0.35, 1.4, 0.75);
+        mirrorStick.rotation.z = 0.5;
+        bikeGroup.add(mirrorStick);
+        const mirrorGlass = new THREE.Mesh(new THREE.BoxGeometry(0.08, 0.05, 0.1), chromeMat);
+        mirrorGlass.position.set(-0.5, 1.52, 0.72);
+        bikeGroup.add(mirrorGlass);
+
+        // Sağ ayna
+        const mirrorStickR = new THREE.Mesh(new THREE.CylinderGeometry(0.015, 0.015, 0.25, 8), chromeMat);
+        mirrorStickR.position.set(0.35, 1.4, 0.75);
+        mirrorStickR.rotation.z = -0.5;
+        bikeGroup.add(mirrorStickR);
+        const mirrorGlassR = new THREE.Mesh(new THREE.BoxGeometry(0.08, 0.05, 0.1), chromeMat);
+        mirrorGlassR.position.set(0.5, 1.52, 0.72);
+        bikeGroup.add(mirrorGlassR);
+
+        // --- Far (MT-07 tarzı keskin) ---
+        const headlightShape = new THREE.Shape();
+        headlightShape.moveTo(-0.1, -0.08);
+        headlightShape.lineTo(0.1, -0.08);
+        headlightShape.lineTo(0.13, 0.08);
+        headlightShape.lineTo(-0.13, 0.08);
+        headlightShape.closePath();
+        const hlGeom = new THREE.ExtrudeGeometry(headlightShape, { steps: 1, depth: 0.06, bevelEnabled: true, bevelThickness: 0.02, bevelSize: 0.02, bevelSegments: 2 });
+        const headlight = new THREE.Mesh(hlGeom, glassMat);
+        headlight.position.set(0, 0.95, 1.05);
+        headlight.castShadow = true;
         bikeGroup.add(headlight);
 
-        // Ön tekerlek
-        const frontWheel = new THREE.Group();
-        frontWheel.position.set(0, 0.15, 0.95);
-        frontWheel.add(new THREE.Mesh(new THREE.TorusGeometry(0.28, 0.08, 16, 32), tireMat));
-        const fRim = new THREE.Mesh(new THREE.CylinderGeometry(0.22, 0.22, 0.1, 24), chromeMat);
-        fRim.rotation.x = Math.PI / 2;
-        frontWheel.add(fRim);
-        bikeGroup.add(frontWheel);
+        // Far çerçevesi
+        const hlFrame = new THREE.Mesh(
+            new THREE.TorusGeometry(0.1, 0.02, 8, 8),
+            chromeMat
+        );
+        hlFrame.position.set(0, 0.95, 1.08);
+        hlFrame.rotation.x = Math.PI / 2;
+        bikeGroup.add(hlFrame);
 
-        // Arka tekerlek
-        const rearWheel = new THREE.Group();
-        rearWheel.position.set(0, 0.15, -0.8);
-        rearWheel.add(new THREE.Mesh(new THREE.TorusGeometry(0.28, 0.08, 16, 32), tireMat));
-        const rRim = new THREE.Mesh(new THREE.CylinderGeometry(0.22, 0.22, 0.1, 24), chromeMat);
-        rRim.rotation.x = Math.PI / 2;
-        rearWheel.add(rRim);
-        bikeGroup.add(rearWheel);
+        // --- Ön çatal (USD fork) ---
+        const forkGeom = new THREE.CylinderGeometry(0.04, 0.05, 0.85, 12);
+        const leftFork = new THREE.Mesh(forkGeom, goldMat);
+        leftFork.position.set(-0.12, 0.4, 0.9);
+        leftFork.castShadow = true;
+        bikeGroup.add(leftFork);
+        const rightFork = new THREE.Mesh(forkGeom, goldMat);
+        rightFork.position.set(0.12, 0.4, 0.9);
+        rightFork.castShadow = true;
+        bikeGroup.add(rightFork);
 
-        // Egzoz
-        const exhaust = new THREE.Mesh(new THREE.CylinderGeometry(0.05, 0.06, 0.8, 8), chromeMat);
-        exhaust.position.set(0.2, 0.3, -0.9);
-        exhaust.rotation.x = -0.3;
-        bikeGroup.add(exhaust);
+        // --- Ön tekerlek (17 inç) ---
+        const frontWheelGroup = new THREE.Group();
+        frontWheelGroup.position.set(0, 0.1, 0.95);
 
-        const exhaustTip = new THREE.Mesh(new THREE.CylinderGeometry(0.06, 0.07, 0.1, 8), redMat);
-        exhaustTip.position.set(0.2, -0.05, -1.25);
+        const tireGeom = new THREE.TorusGeometry(0.3, 0.09, 16, 32);
+        const frontTire = new THREE.Mesh(tireGeom, tireMat);
+        frontTire.castShadow = true;
+        frontWheelGroup.add(frontTire);
+
+        // Jant (Y-spoke tarzı)
+        const rimGeom = new THREE.CylinderGeometry(0.24, 0.24, 0.12, 24);
+        const frontRim = new THREE.Mesh(rimGeom, chromeMat);
+        frontRim.rotation.x = Math.PI / 2;
+        frontRim.castShadow = true;
+        frontWheelGroup.add(frontRim);
+
+        // Jant kolları
+        for (let i = 0; i < 6; i++) {
+            const spokeGeom = new THREE.BoxGeometry(0.03, 0.18, 0.03);
+            const spoke = new THREE.Mesh(spokeGeom, darkGray);
+            spoke.position.set(
+                Math.cos(i * Math.PI / 3) * 0.12,
+                Math.sin(i * Math.PI / 3) * 0.12,
+                0
+            );
+            frontWheelGroup.add(spoke);
+        }
+
+        // Fren diski
+        const brakeDiscGeom = new THREE.TorusGeometry(0.2, 0.03, 8, 24);
+        const frontBrakeDisc = new THREE.Mesh(brakeDiscGeom, chromeMat);
+        frontBrakeDisc.position.z = 0.06;
+        frontWheelGroup.add(frontBrakeDisc);
+
+        bikeGroup.add(frontWheelGroup);
+
+        // --- Arka tekerlek ---
+        const rearWheelGroup = new THREE.Group();
+        rearWheelGroup.position.set(0, 0.1, -0.85);
+
+        const rearTire = new THREE.Mesh(tireGeom, tireMat);
+        rearTire.castShadow = true;
+        rearWheelGroup.add(rearTire);
+
+        const rearRim = new THREE.Mesh(rimGeom, chromeMat);
+        rearRim.rotation.x = Math.PI / 2;
+        rearRim.castShadow = true;
+        rearWheelGroup.add(rearRim);
+
+        for (let i = 0; i < 6; i++) {
+            const spokeGeom = new THREE.BoxGeometry(0.03, 0.18, 0.03);
+            const spoke = new THREE.Mesh(spokeGeom, darkGray);
+            spoke.position.set(
+                Math.cos(i * Math.PI / 3) * 0.12,
+                Math.sin(i * Math.PI / 3) * 0.12,
+                0
+            );
+            rearWheelGroup.add(spoke);
+        }
+
+        const rearBrakeDisc = new THREE.Mesh(brakeDiscGeom, chromeMat);
+        rearBrakeDisc.position.z = 0.06;
+        rearWheelGroup.add(rearBrakeDisc);
+
+        // Dişli
+        const sprocketGeom = new THREE.TorusGeometry(0.1, 0.02, 8, 20);
+        const sprocket = new THREE.Mesh(sprocketGeom, goldMat);
+        sprocket.position.z = -0.06;
+        rearWheelGroup.add(sprocket);
+
+        bikeGroup.add(rearWheelGroup);
+
+        // --- Salıncak kolu (MT-07 tarzı) ---
+        const swingarmGeom = new THREE.BoxGeometry(0.1, 0.08, 0.9);
+        const leftSwingarm = new THREE.Mesh(swingarmGeom, darkGray);
+        leftSwingarm.position.set(-0.25, 0.35, -0.4);
+        leftSwingarm.castShadow = true;
+        bikeGroup.add(leftSwingarm);
+        const rightSwingarm = new THREE.Mesh(swingarmGeom, darkGray);
+        rightSwingarm.position.set(0.25, 0.35, -0.4);
+        rightSwingarm.castShadow = true;
+        bikeGroup.add(rightSwingarm);
+
+        // --- Egzoz sistemi (MT-07 underslung tarzı) ---
+        const exhaustPipe = new THREE.Mesh(
+            new THREE.CylinderGeometry(0.04, 0.05, 1.0, 8),
+            chromeMat
+        );
+        exhaustPipe.position.set(0.25, 0.25, -0.5);
+        exhaustPipe.rotation.x = -0.15;
+        exhaustPipe.castShadow = true;
+        bikeGroup.add(exhaustPipe);
+
+        // Egzoz kutusu
+        const exhaustBox = new THREE.Mesh(
+            new THREE.BoxGeometry(0.15, 0.1, 0.5),
+            chromeMat
+        );
+        exhaustBox.position.set(0.25, 0.08, -1.0);
+        exhaustBox.castShadow = true;
+        bikeGroup.add(exhaustBox);
+
+        // Egzoz çıkışı
+        const exhaustTip = new THREE.Mesh(
+            new THREE.CylinderGeometry(0.04, 0.05, 0.1, 8),
+            cyanAccent
+        );
+        exhaustTip.position.set(0.25, 0.08, -1.28);
         bikeGroup.add(exhaustTip);
+
+        // --- Arka amortisör ---
+        const shockGeom = new THREE.CylinderGeometry(0.04, 0.04, 0.4, 8);
+        const shock = new THREE.Mesh(shockGeom, goldMat);
+        shock.position.set(0, 0.55, -0.3);
+        shock.castShadow = true;
+        bikeGroup.add(shock);
+
+        // --- Plaka tutucu ---
+        const plateHolder = new THREE.Mesh(new THREE.BoxGeometry(0.05, 0.2, 0.15), darkGray);
+        plateHolder.position.set(0, 0.35, -1.3);
+        bikeGroup.add(plateHolder);
+
+        const plate = new THREE.Mesh(
+            new THREE.BoxGeometry(0.18, 0.1, 0.02),
+            new THREE.MeshStandardMaterial({ color: '#ffffff', roughness: 0.2, metalness: 0.3 })
+        );
+        plate.position.set(0, 0.35, -1.35);
+        bikeGroup.add(plate);
+
+        // --- Radyatör ---
+        const radiator = new THREE.Mesh(new THREE.BoxGeometry(0.35, 0.25, 0.06), darkGray);
+        radiator.position.set(0, 0.55, 0.7);
+        bikeGroup.add(radiator);
+
+        // Radyatör koruma
+        const radGuard = new THREE.Mesh(new THREE.BoxGeometry(0.37, 0.27, 0.02), chromeMat);
+        radGuard.position.set(0, 0.55, 0.74);
+        bikeGroup.add(radGuard);
 
         scene.add(bikeGroup);
 
-        // Animasyon
+        // ============ ANİMASYON ============
         const clock = new THREE.Clock();
 
         function animate() {
             requestAnimationFrame(animate);
+            
             const t = clock.getElapsedTime();
             
-            bikeGroup.rotation.y = Math.sin(t * 0.4) * 0.3;
-            bikeGroup.position.y = Math.sin(t * 1.5) * 0.08;
-            frontWheel.rotation.x += 0.02;
-            rearWheel.rotation.x += 0.02;
+            // Motor yavaşça sergilensin
+            bikeGroup.rotation.y = Math.sin(t * 0.35) * 0.35;
+            bikeGroup.position.y = Math.sin(t * 1.2) * 0.06;
+            
+            // Tekerlekler yavaşça dönsün
+            frontWheelGroup.rotation.x += 0.015;
+            rearWheelGroup.rotation.x += 0.015;
+            
+            // Işık animasyonu
+            keyLight.intensity = 5 + Math.sin(t * 0.6) * 0.5;
             
             renderer.render(scene, camera);
         }
         animate();
 
+        // ============ RESIZE ============
         window.addEventListener('resize', () => {
             camera.aspect = window.innerWidth / window.innerHeight;
             camera.updateProjectionMatrix();
             renderer.setSize(window.innerWidth, window.innerHeight);
         });
 
-        console.log('🏍️ Ana menü hazır!');
+        // ============ PARA YÜKLEME ============
+        function updateMoneyDisplay() {
+            document.getElementById('money-amount').textContent = money.toLocaleString('tr-TR');
+        }
+
+        console.log('🏍️ MT-07 Hazır!');
+        console.log('💰 Para:', money.toLocaleString('tr-TR'));
     </script>
 </body>
 </html>
