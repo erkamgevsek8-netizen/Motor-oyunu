@@ -3,597 +3,244 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>Motor Rider - Sürüş</title>
+    <title>Motor Rider</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body {
-            font-family: 'Segoe UI', sans-serif; background: #000; overflow: hidden;
-            height: 100vh; width: 100vw;
-            user-select: none; -webkit-user-select: none;
-            -webkit-tap-highlight-color: transparent; touch-action: manipulation;
-        }
-        #game-canvas { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 1; }
-        .hud { position: fixed; z-index: 10; pointer-events: none; }
-        .dashboard {
-            bottom: 20px; left: 50%; transform: translateX(-50%);
-            background: rgba(0,0,0,0.85); backdrop-filter: blur(20px);
-            border: 2px solid rgba(255,255,255,0.2); border-radius: 25px;
-            padding: 15px 22px; display: flex; align-items: center; gap: 18px;
-        }
-        .speed-val { font-size: 40px; font-weight: 900; color: #ff4d00; line-height: 1; }
-        .speed-unit { font-size: 10px; color: #aaa; }
-        .gear-section {
-            background: rgba(255,215,0,0.15); border: 2px solid rgba(255,215,0,0.4);
-            border-radius: 12px; padding: 6px 12px; font-size: 22px; font-weight: 900;
-            color: #ffd700; min-width: 40px; text-align: center;
-        }
-        .rpm-section { flex: 1; min-width: 70px; }
-        .rpm-bar-outer { height: 7px; background: rgba(255,255,255,0.1); border-radius: 4px; overflow: hidden; }
-        .rpm-bar-inner { height: 100%; border-radius: 4px; width: 0%; }
-        .rpm-num { font-size: 8px; color: #aaa; text-align: right; margin-top: 2px; }
-        .money-hud {
-            top: 15px; right: 15px;
-            background: rgba(0,0,0,0.75); border: 2px solid rgba(255,215,0,0.4);
-            border-radius: 25px; padding: 7px 14px; display: flex; align-items: center; gap: 6px;
-            font-size: 15px; font-weight: 700; color: #ffd700;
-        }
-        .distance-hud {
-            top: 58px; right: 15px;
-            background: rgba(0,0,0,0.6); border: 1px solid rgba(255,255,255,0.2);
-            border-radius: 15px; padding: 4px 10px; font-size: 10px; color: #aaa;
-        }
-        .camera-btn {
-            top: 15px; left: 75px;
-            background: rgba(0,0,0,0.7); border: 2px solid rgba(255,255,255,0.2);
-            border-radius: 20px; padding: 7px 12px; font-size: 11px; color: #fff;
-            z-index: 20; pointer-events: all; cursor: pointer; display: flex; align-items: center; gap: 4px;
-        }
-        .back-btn {
-            top: 15px; left: 15px;
-            background: rgba(0,0,0,0.7); border: 2px solid rgba(255,255,255,0.2);
-            border-radius: 50%; width: 38px; height: 38px; display: flex;
-            align-items: center; justify-content: center; cursor: pointer;
-            color: #fff; font-size: 16px; text-decoration: none; z-index: 20; pointer-events: all;
-        }
-        .mobile-controls {
-            position: fixed; bottom: 100px; left: 50%; transform: translateX(-50%);
-            z-index: 10; display: flex; gap: 40px; pointer-events: all;
-        }
-        .ctrl-btn {
-            width: 55px; height: 55px; border-radius: 50%;
-            background: rgba(0,0,0,0.5); border: 2px solid rgba(255,255,255,0.3);
-            display: flex; align-items: center; justify-content: center;
-            font-size: 22px; color: #fff; cursor: pointer;
-        }
-        .ctrl-btn:active { background: rgba(255,77,0,0.5); border-color: #ff4d00; transform: scale(0.9); }
-        .ctrl-btn.gas { width: 65px; height: 65px; background: rgba(0,180,0,0.3); border-color: rgba(0,200,0,0.6); font-size: 26px; }
-        .ctrl-btn.brake { background: rgba(180,0,0,0.3); border-color: rgba(200,0,0,0.6); }
-        .wheelie-btn {
-            position: fixed; right: 15px; bottom: 180px; z-index: 10;
-            width: 45px; height: 45px; border-radius: 50%;
-            background: rgba(255,215,0,0.2); border: 2px solid rgba(255,215,0,0.4);
-            display: flex; align-items: center; justify-content: center;
-            font-size: 18px; color: #ffd700; cursor: pointer; pointer-events: all;
-        }
-        .horn-btn {
-            position: fixed; left: 15px; bottom: 180px; z-index: 10;
-            width: 45px; height: 45px; border-radius: 50%;
-            background: rgba(255,255,0,0.2); border: 2px solid rgba(255,255,0,0.4);
-            display: flex; align-items: center; justify-content: center;
-            font-size: 18px; color: #ff0; cursor: pointer; pointer-events: all;
-        }
-        .pc-mode .mobile-controls { display: none !important; }
-        .pc-mode .wheelie-btn { display: none !important; }
-        .pc-mode .horn-btn { display: none !important; }
-        @media (max-width:600px) {
-            .dashboard { bottom: 10px; padding: 10px 12px; gap: 10px; border-radius: 18px; }
-            .speed-val { font-size: 30px; }
-            .gear-section { font-size: 18px; padding: 4px 8px; }
-            .mobile-controls { bottom: 85px; gap: 35px; }
-            .ctrl-btn { width: 50px; height: 50px; font-size: 20px; }
-            .ctrl-btn.gas { width: 58px; height: 58px; font-size: 24px; }
-        }
+        body { background: #000; overflow: hidden; height: 100vh; width: 100vw; font-family: Arial; }
+        #c { position: fixed; top: 0; left: 0; width: 100%; height: 100%; }
+        #speed { position: fixed; bottom: 30px; left: 20px; z-index: 10; font-size: 50px; font-weight: 900; color: #ff4d00; }
+        #gear { position: fixed; bottom: 35px; left: 120px; z-index: 10; font-size: 30px; font-weight: 900; color: #ffd700; background: rgba(0,0,0,0.7); padding: 5px 15px; border-radius: 10px; }
+        #money { position: fixed; top: 20px; right: 20px; z-index: 10; font-size: 18px; color: #ffd700; background: rgba(0,0,0,0.7); padding: 8px 16px; border-radius: 20px; }
+        #back { position: fixed; top: 15px; left: 15px; z-index: 20; background: rgba(0,0,0,0.7); border-radius: 50%; width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; color: #fff; text-decoration: none; font-size: 20px; }
+        #btns { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%); z-index: 10; display: flex; gap: 30px; }
+        #btns button { width: 65px; height: 65px; border-radius: 50%; border: 3px solid rgba(255,255,255,0.5); font-size: 28px; color: #fff; cursor: pointer; }
+        #gas-btn { background: rgba(0,180,0,0.4); border-color: #0f0; }
+        #brake-btn { background: rgba(180,0,0,0.4); border-color: #f00; }
     </style>
 </head>
 <body>
-
-    <canvas id="game-canvas"></canvas>
-    
-    <a href="index.html" class="back-btn hud" style="pointer-events:all;">←</a>
-    <div class="camera-btn hud" onclick="switchCamera()" style="pointer-events:all;">📷 <span id="cam-label">ARKA</span></div>
-
-    <div class="hud dashboard">
-        <div><div class="speed-val" id="speed-display">0</div><div class="speed-unit">KM/H</div></div>
-        <div class="gear-section" id="gear-display">N</div>
-        <div class="rpm-section">
-            <div class="rpm-bar-outer"><div class="rpm-bar-inner" id="rpm-fill"></div></div>
-            <div class="rpm-num" id="rpm-text">0 RPM</div>
-        </div>
+    <canvas id="c"></canvas>
+    <a href="index.html" id="back">←</a>
+    <div id="speed">0</div>
+    <div id="gear">N</div>
+    <div id="money">🪙 0</div>
+    <div id="btns">
+        <button id="brake-btn">🔽</button>
+        <button id="gas-btn">🔼</button>
     </div>
-
-    <div class="hud money-hud"><span>🪙</span> <span id="money-display">0</span></div>
-    <div class="hud distance-hud">📏 <span id="distance-display">0</span> m</div>
-
-    <div class="mobile-controls" id="mobile-ctrls">
-        <button class="ctrl-btn brake" id="brake-btn">🔽</button>
-        <button class="ctrl-btn gas" id="gas-btn">🔼</button>
-    </div>
-
-    <button class="wheelie-btn" id="btn-wheelie">⬆️</button>
-    <button class="horn-btn" id="btn-horn">📢</button>
 
     <script src="https://cdn.jsdelivr.net/npm/three@0.150.0/build/three.min.js"></script>
-
     <script>
+    window.onload = function() {
         if (typeof THREE === 'undefined') {
-            document.body.innerHTML = '<h1 style="color:white;text-align:center;margin-top:40vh;">❌ Three.js yüklenemedi!</h1>';
-            throw new Error('Three.js yok');
+            document.body.innerHTML = '<h1 style="color:white;text-align:center;margin-top:40vh;">❌ Yüklenemedi!<br>İnternet yok veya CDN engelli.</h1>';
+            return;
         }
 
-        // Ayarlar
-        let settings;
-        try { settings = JSON.parse(localStorage.getItem('motorRiderSettings')) || { mode: 'phone', sensitivity: 65, drawDistance: 100 }; }
-        catch(e) { settings = { mode: 'phone', sensitivity: 65, drawDistance: 100 }; }
+        // Sahne
+        var scene = new THREE.Scene();
+        scene.background = new THREE.Color(0x87CEEB);
+        scene.fog = new THREE.Fog(0x87CEEB, 40, 120);
 
-        if (settings.mode === 'pc') {
-            document.body.classList.add('pc-mode');
-            document.getElementById('mobile-ctrls').style.display = 'none';
-            document.getElementById('btn-wheelie').style.display = 'none';
-            document.getElementById('btn-horn').style.display = 'none';
-        }
+        var camera = new THREE.PerspectiveCamera(65, window.innerWidth/window.innerHeight, 0.5, 150);
+        camera.position.set(0, 4, -7);
+        camera.lookAt(0, 1, 10);
 
-        let bikeColor;
-        try { bikeColor = localStorage.getItem('motorRiderBikeColor') || '#ff3300'; }
-        catch(e) { bikeColor = '#ff3300'; }
-
-        let equippedMods;
-        try { equippedMods = JSON.parse(localStorage.getItem('motorRiderEquippedMods')) || { egzoz: 'exhaust_stock' }; }
-        catch(e) { equippedMods = { egzoz: 'exhaust_stock' }; }
-        const exhaustType = equippedMods['egzoz'] || 'exhaust_stock';
-
-        // THREE.JS
-        const canvas = document.getElementById('game-canvas');
-        const renderer = new THREE.WebGLRenderer({ canvas: canvas, antialias: true });
+        var renderer = new THREE.WebGLRenderer({ canvas: document.getElementById('c'), antialias: true });
         renderer.setSize(window.innerWidth, window.innerHeight);
         renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
 
-        const scene = new THREE.Scene();
-        scene.background = new THREE.Color('#87CEEB');
-        const fogDist = 30 + (settings.drawDistance / 100) * 90;
-        scene.fog = new THREE.Fog('#87CEEB', fogDist * 0.5, fogDist);
-
-        const camera = new THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight, 0.3, fogDist + 30);
-        let cameraMode = 1;
-        camera.position.set(0, 3.5, -6);
-
-        scene.add(new THREE.AmbientLight('#ffffff', 0.7));
-        const sun = new THREE.DirectionalLight('#fff8e7', 2);
-        sun.position.set(30, 40, 20);
+        // Işık
+        scene.add(new THREE.AmbientLight(0xffffff, 0.7));
+        var sun = new THREE.DirectionalLight(0xffffff, 2);
+        sun.position.set(20, 30, 10);
         scene.add(sun);
 
-        // ============ SES ============
-        let audioCtx = null;
-        function initAudio() { if (!audioCtx) try { audioCtx = new (window.AudioContext || window.webkitAudioContext)(); } catch(e) {} }
+        // Motor
+        var bike = new THREE.Group();
+        var red = new THREE.MeshStandardMaterial({ color: 0xff3300, roughness: 0.2, metalness: 0.8 });
+        var gray = new THREE.MeshStandardMaterial({ color: 0x444444, roughness: 0.3 });
+        var black = new THREE.MeshStandardMaterial({ color: 0x111111, roughness: 0.9 });
 
-        function playStockExhaust() {
-            if (!audioCtx) return;
-            try {
-                const now = audioCtx.currentTime;
-                for (let i = 0; i < 3; i++) {
-                    const osc = audioCtx.createOscillator();
-                    const gain = audioCtx.createGain();
-                    osc.type = 'triangle';
-                    osc.frequency.value = 50 + i * 15;
-                    gain.gain.setValueAtTime(0.06, now + i * 0.12);
-                    gain.gain.exponentialRampToValueAtTime(0.001, now + i * 0.12 + 0.1);
-                    osc.connect(gain); gain.connect(audioCtx.destination);
-                    osc.start(now + i * 0.12); osc.stop(now + i * 0.12 + 0.1);
-                }
-            } catch(e) {}
-        }
+        var body = new THREE.Mesh(new THREE.BoxGeometry(0.4, 0.5, 1.7), red);
+        body.position.y = 0.7;
+        bike.add(body);
 
-        function playSportExhaust() {
-            if (!audioCtx) return;
-            try {
-                const now = audioCtx.currentTime;
-                const sr = audioCtx.sampleRate;
-                const buf = audioCtx.createBuffer(1, 0.5 * sr, sr);
-                const d = buf.getChannelData(0);
-                for (let i = 0; i < d.length; i++) {
-                    d[i] = ((Math.random() * 2 - 1) * 0.5 + Math.sin(2 * Math.PI * 70 * (i/sr)) * 0.5) * Math.exp(-i/sr * 10) * 0.8;
-                }
-                const src = audioCtx.createBufferSource(); src.buffer = buf;
-                const g = audioCtx.createGain();
-                g.gain.setValueAtTime(0.7, now);
-                g.gain.exponentialRampToValueAtTime(0.01, now + 0.5);
-                src.connect(g); g.connect(audioCtx.destination); src.start();
-            } catch(e) {}
-        }
+        var tank = new THREE.Mesh(new THREE.CylinderGeometry(0.2, 0.23, 0.65, 8), red);
+        tank.rotation.x = Math.PI / 2;
+        tank.position.set(0, 1, 0.3);
+        bike.add(tank);
 
-        function playRaceExhaust() {
-            if (!audioCtx) return;
-            try {
-                const now = audioCtx.currentTime;
-                const sr = audioCtx.sampleRate;
-                const buf = audioCtx.createBuffer(1, 0.3 * sr, sr);
-                const d = buf.getChannelData(0);
-                for (let i = 0; i < d.length; i++) {
-                    d[i] = (Math.random() * 2 - 1) * Math.exp(-i/sr * 15) * 0.6;
-                }
-                const src = audioCtx.createBufferSource(); src.buffer = buf;
-                const g = audioCtx.createGain();
-                g.gain.setValueAtTime(0.5, now);
-                g.gain.exponentialRampToValueAtTime(0.01, now + 0.3);
-                src.connect(g); g.connect(audioCtx.destination); src.start();
+        var seat = new THREE.Mesh(new THREE.BoxGeometry(0.28, 0.12, 0.5), black);
+        seat.position.set(0, 0.95, -0.45);
+        bike.add(seat);
 
-                const osc = audioCtx.createOscillator();
-                const g2 = audioCtx.createGain();
-                osc.type = 'square'; osc.frequency.value = 200;
-                g2.gain.setValueAtTime(0.15, now);
-                g2.gain.exponentialRampToValueAtTime(0.01, now + 0.2);
-                osc.connect(g2); g2.connect(audioCtx.destination);
-                osc.start(now); osc.stop(now + 0.2);
-            } catch(e) {}
-        }
+        var engine = new THREE.Mesh(new THREE.BoxGeometry(0.35, 0.35, 0.5), gray);
+        engine.position.set(0, 0.5, -0.05);
+        bike.add(engine);
 
-        function playExhaustSound() {
-            if (exhaustType === 'exhaust_sport') playSportExhaust();
-            else if (exhaustType === 'exhaust_race') playRaceExhaust();
-            else playStockExhaust();
-        }
+        var fw = new THREE.Group();
+        fw.position.set(0, 0.15, 0.9);
+        var ft = new THREE.Mesh(new THREE.TorusGeometry(0.28, 0.09, 8, 12), black);
+        fw.add(ft);
+        bike.add(fw);
 
-        function playHorn() {
-            if (!audioCtx) return;
-            try {
-                const osc = audioCtx.createOscillator();
-                const gain = audioCtx.createGain();
-                osc.type = 'square'; osc.frequency.value = 440;
-                gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
-                gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.4);
-                osc.connect(gain); gain.connect(audioCtx.destination);
-                osc.start(); osc.stop(audioCtx.currentTime + 0.4);
-            } catch(e) {}
-        }
+        var rw = new THREE.Group();
+        rw.position.set(0, 0.15, -0.75);
+        var rt = new THREE.Mesh(new THREE.TorusGeometry(0.28, 0.09, 8, 12), black);
+        rw.add(rt);
+        bike.add(rw);
 
-        // MOTOR
-        const bikeGroup = new THREE.Group();
-        const chromeMat = new THREE.MeshStandardMaterial({ color: '#cccccc', roughness: 0.1, metalness: 1.0 });
-        const tireMat = new THREE.MeshStandardMaterial({ color: '#111111', roughness: 0.9 });
-        const seatMat = new THREE.MeshStandardMaterial({ color: '#111111', roughness: 0.8 });
-        const darkMat = new THREE.MeshStandardMaterial({ color: '#1a1a1a', roughness: 0.3, metalness: 0.7 });
-        const bodyMat = new THREE.MeshStandardMaterial({ color: bikeColor, roughness: 0.15, metalness: 0.8 });
+        var hb = new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.04, 0.6, 6), new THREE.MeshStandardMaterial({ color: 0xcccccc, roughness: 0.1, metalness: 1 }));
+        hb.rotation.z = Math.PI / 2;
+        hb.position.set(0, 1.2, 0.8);
+        bike.add(hb);
 
-        bikeGroup.add(new THREE.Mesh(new THREE.BoxGeometry(0.35, 0.45, 1.7), bodyMat).position.set(0, 0.65, 0));
-        bikeGroup.add(new THREE.Mesh(new THREE.BoxGeometry(0.35, 0.4, 0.5), darkMat).position.set(0, 0.5, -0.05));
-        const tank = new THREE.Mesh(new THREE.CylinderGeometry(0.2, 0.23, 0.65, 12), bodyMat);
-        tank.rotation.x = Math.PI / 2; tank.position.set(0, 0.9, 0.25); bikeGroup.add(tank);
-        bikeGroup.add(new THREE.Mesh(new THREE.BoxGeometry(0.26, 0.12, 0.55), seatMat).position.set(0, 0.92, -0.45));
-        const hl = new THREE.Mesh(new THREE.CylinderGeometry(0.1, 0.1, 0.06, 12),
-            new THREE.MeshStandardMaterial({ color: '#ffffff', emissive: '#ffffff', emissiveIntensity: 0.8 }));
-        hl.rotation.x = Math.PI / 2; hl.position.set(0, 0.85, 1.0); bikeGroup.add(hl);
+        scene.add(bike);
 
-        const fw = new THREE.Group(); fw.position.set(0, 0.15, 0.9);
-        const frontTire = new THREE.Mesh(new THREE.TorusGeometry(0.28, 0.09, 8, 16), tireMat);
-        fw.add(frontTire);
-        const fr = new THREE.Mesh(new THREE.CylinderGeometry(0.22, 0.22, 0.1, 16), chromeMat);
-        fr.rotation.x = Math.PI / 2; fw.add(fr); bikeGroup.add(fw);
+        // Yol
+        var roadGroup = new THREE.Group();
+        scene.add(roadGroup);
+        var roadMat = new THREE.MeshStandardMaterial({ color: 0x444444, roughness: 0.8 });
+        var grassMat = new THREE.MeshStandardMaterial({ color: 0x2d5a1e, roughness: 0.9 });
+        var segments = [];
+        var SEG = 25;
+        var COUNT = 5;
 
-        const rw = new THREE.Group(); rw.position.set(0, 0.15, -0.75);
-        const rearTire = new THREE.Mesh(new THREE.TorusGeometry(0.28, 0.09, 8, 16), tireMat);
-        rw.add(rearTire);
-        const rr = new THREE.Mesh(new THREE.CylinderGeometry(0.22, 0.22, 0.1, 16), chromeMat);
-        rr.rotation.x = Math.PI / 2; rw.add(rr); bikeGroup.add(rw);
+        for (var i = 0; i < COUNT; i++) {
+            var g = new THREE.Group();
+            
+            var road = new THREE.Mesh(new THREE.PlaneGeometry(8, SEG), roadMat);
+            road.rotation.x = -Math.PI / 2;
+            road.position.set(0, 0, SEG / 2);
+            g.add(road);
 
-        bikeGroup.add(new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.04, 0.65, 8), chromeMat).rotation.set(0,0,Math.PI/2).position.set(0, 1.2, 0.8));
-
-        // EGZOZ
-        const exhaustGroup = new THREE.Group();
-        if (exhaustType === 'exhaust_sport') {
-            const dm = new THREE.MeshStandardMaterial({ color: '#333333', roughness: 0.2, metalness: 0.9 });
-            exhaustGroup.add(new THREE.Mesh(new THREE.CylinderGeometry(0.05, 0.06, 0.9, 8), dm).position.set(0.25, 0.25, -0.5).rotation.set(-0.15,0,0));
-            exhaustGroup.add(new THREE.Mesh(new THREE.BoxGeometry(0.16, 0.1, 0.5), dm).position.set(0.25, 0.06, -1.0));
-            exhaustGroup.add(new THREE.Mesh(new THREE.CylinderGeometry(0.06, 0.07, 0.12, 8),
-                new THREE.MeshStandardMaterial({ color: '#ffd700', roughness: 0.1, metalness: 1 })).position.set(0.25, 0.06, -1.3));
-        } else if (exhaustType === 'exhaust_race') {
-            const cm = new THREE.MeshStandardMaterial({ color: '#1a1a1a', roughness: 0.3, metalness: 0.4 });
-            exhaustGroup.add(new THREE.Mesh(new THREE.CylinderGeometry(0.05, 0.06, 0.8, 8), cm).position.set(0.25, 0.25, -0.45).rotation.set(-0.1,0,0));
-            exhaustGroup.add(new THREE.Mesh(new THREE.BoxGeometry(0.18, 0.12, 0.4), cm).position.set(0.25, 0.06, -0.9));
-            for (let s = -1; s <= 1; s += 2)
-                exhaustGroup.add(new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.05, 0.1, 8),
-                    new THREE.MeshStandardMaterial({ color: '#ff4400', roughness: 0.1, metalness: 1 })).position.set(0.25 + s * 0.05, 0.06, -1.15));
-        } else {
-            exhaustGroup.add(new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.05, 0.9, 8), chromeMat).position.set(0.2, 0.25, -0.5).rotation.set(-0.2,0,0));
-            exhaustGroup.add(new THREE.Mesh(new THREE.BoxGeometry(0.14, 0.09, 0.45), chromeMat).position.set(0.2, 0.06, -1.0));
-            exhaustGroup.add(new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.05, 0.08, 8), bodyMat).position.set(0.2, 0.06, -1.25));
-        }
-        bikeGroup.add(exhaustGroup);
-
-        // ALEV
-        const flameGroup = new THREE.Group(); flameGroup.visible = false;
-        bikeGroup.add(flameGroup);
-        let flameParticles = [];
-
-        function burstFlame() {
-            while (flameGroup.children.length > 0) flameGroup.remove(flameGroup.children[0]);
-            flameParticles = [];
-            const count = exhaustType === 'exhaust_race' ? 35 : (exhaustType === 'exhaust_sport' ? 25 : 10);
-            for (let i = 0; i < count; i++) {
-                const fl = new THREE.Mesh(new THREE.SphereGeometry(Math.random() * 0.05 + 0.02, 3, 3),
-                    new THREE.MeshBasicMaterial({ color: Math.random() > 0.5 ? '#ff4400' : '#ffaa00', transparent: true }));
-                fl.position.set(0.2 + (Math.random() - 0.5) * 0.1, 0.06, -1.3);
-                flameParticles.push({ mesh: fl, vel: new THREE.Vector3((Math.random() - 0.5) * 1.5, Math.random() * 2 + 0.5, -Math.random() * 4 - 2), life: 0.4 + Math.random() * 0.3, age: 0 });
-                flameGroup.add(fl);
+            for (var z = 0; z < SEG; z += 4) {
+                var dash = new THREE.Mesh(new THREE.PlaneGeometry(0.3, 2), new THREE.MeshStandardMaterial({ color: 0xffffff }));
+                dash.rotation.x = -Math.PI / 2;
+                dash.position.set(0, 0.01, z + 2);
+                g.add(dash);
             }
-            flameGroup.visible = true;
-        }
 
-        function updateFlames(dt) {
-            for (let i = flameParticles.length - 1; i >= 0; i--) {
-                const p = flameParticles[i];
-                p.age += dt;
-                p.mesh.position.add(p.vel.clone().multiplyScalar(dt));
-                p.mesh.material.opacity = 1 - (p.age / p.life);
-                if (p.age >= p.life) { flameGroup.remove(p.mesh); flameParticles.splice(i, 1); }
-            }
-            if (flameParticles.length === 0) flameGroup.visible = false;
-        }
+            for (var s = -1; s <= 1; s += 2) {
+                var grass = new THREE.Mesh(new THREE.PlaneGeometry(10, SEG), grassMat);
+                grass.rotation.x = -Math.PI / 2;
+                grass.position.set(s * 9, -0.02, SEG / 2);
+                g.add(grass);
 
-        scene.add(bikeGroup);
-
-        // YOL (8m)
-        const roadGroup = new THREE.Group(); scene.add(roadGroup);
-        const roadMat = new THREE.MeshStandardMaterial({ color: '#444444', roughness: 0.8 });
-        const grassMat = new THREE.MeshStandardMaterial({ color: '#2d5a1e', roughness: 0.9 });
-        const bMats = [
-            new THREE.MeshStandardMaterial({ color: '#c4a882', roughness: 0.6 }),
-            new THREE.MeshStandardMaterial({ color: '#d5c4a1', roughness: 0.5 }),
-            new THREE.MeshStandardMaterial({ color: '#b8c5d0', roughness: 0.4, metalness: 0.3 })
-        ];
-        const segments = [];
-        const segLen = 30;
-        const totalSegs = 5;
-
-        function createSegment(zPos) {
-            const g = new THREE.Group();
-            const road = new THREE.Mesh(new THREE.PlaneGeometry(8, segLen), roadMat);
-            road.rotation.x = -Math.PI / 2; road.position.set(0, 0.01, segLen / 2); road.receiveShadow = true; g.add(road);
-
-            for (let z = 0; z < segLen; z += 4) {
-                const dash = new THREE.Mesh(new THREE.PlaneGeometry(0.3, 2.5), new THREE.MeshStandardMaterial({ color: '#ffffff' }));
-                dash.rotation.x = -Math.PI / 2; dash.position.set(0, 0.02, z + 2); g.add(dash);
-            }
-            for (let s = -1; s <= 1; s += 2) {
-                const edge = new THREE.Mesh(new THREE.PlaneGeometry(0.2, segLen), new THREE.MeshStandardMaterial({ color: '#ffffff' }));
-                edge.rotation.x = -Math.PI / 2; edge.position.set(s * 3.5, 0.02, segLen / 2); g.add(edge);
-                const grass = new THREE.Mesh(new THREE.PlaneGeometry(10, segLen), grassMat);
-                grass.rotation.x = -Math.PI / 2; grass.position.set(s * 10, -0.02, segLen / 2); grass.receiveShadow = true; g.add(grass);
-
-                for (let t = 0; t < 3; t++) {
-                    const tree = new THREE.Group();
-                    const th = 2 + Math.random() * 3;
-                    tree.add(new THREE.Mesh(new THREE.CylinderGeometry(0.12, 0.18, th, 6), new THREE.MeshStandardMaterial({ color: '#8B5E3C' })).position.set(0, th/2, 0));
-                    tree.add(new THREE.Mesh(new THREE.ConeGeometry(1.2, 3.5, 8), new THREE.MeshStandardMaterial({ color: '#1a5c1a' })).position.set(0, th+1.2, 0));
-                    tree.position.set(s * (7 + Math.random() * 6), 0, Math.random() * segLen); g.add(tree);
-                }
-
-                if (Math.random() > 0.4) {
-                    const bw = 3 + Math.random() * 6, bh = 8 + Math.random() * 25, bd = 4 + Math.random() * 10;
-                    const b = new THREE.Mesh(new THREE.BoxGeometry(bw, bh, bd), bMats[Math.floor(Math.random() * 3)]);
-                    b.position.set(s * (10 + bw / 2), bh / 2, Math.random() * (segLen - bd));
-                    b.castShadow = true; b.receiveShadow = true; g.add(b);
+                for (var t = 0; t < 2; t++) {
+                    var tree = new THREE.Group();
+                    var th = 2 + Math.random() * 2;
+                    var trunk = new THREE.Mesh(new THREE.CylinderGeometry(0.1, 0.15, th, 5), new THREE.MeshStandardMaterial({ color: 0x5a3a1a }));
+                    trunk.position.y = th / 2;
+                    tree.add(trunk);
+                    var leaves = new THREE.Mesh(new THREE.ConeGeometry(1, 3, 6), new THREE.MeshStandardMaterial({ color: 0x1a5a1a }));
+                    leaves.position.y = th + 1;
+                    tree.add(leaves);
+                    tree.position.set(s * (7 + Math.random() * 5), 0, Math.random() * SEG);
+                    g.add(tree);
                 }
             }
-            g.position.z = zPos; return g;
+
+            g.position.z = -i * SEG;
+            segments.push(g);
+            roadGroup.add(g);
         }
 
-        for (let i = 0; i < totalSegs; i++) {
-            const seg = createSegment(-i * segLen);
-            segments.push(seg); roadGroup.add(seg);
-        }
+        // Oyun değişkenleri
+        var speed = 0;
+        var gear = 0;
+        var money = parseInt(localStorage.getItem('motorRiderMoney')) || 0;
+        var dist = parseFloat(localStorage.getItem('motorRiderDistance')) || 0;
+        var gears = [0, 30, 55, 85, 120, 155, 200];
+        var gasOn = false;
+        var brakeOn = false;
 
-        // ============ ARABALAR (TRAFİK) ============
-        const trafficCars = [];
-        const carColors = ['#ff3333', '#3366ff', '#33cc33', '#ffcc00', '#ff6600', '#9933ff', '#ffffff', '#222222'];
-        const carSpeeds = [20, 30, 40, 50, 60, 80, 100, 130];
-        const lanes = [-3, -1, 1, 3];
+        // Butonlar
+        document.getElementById('gas-btn').addEventListener('touchstart', function(e) { e.preventDefault(); gasOn = true; });
+        document.getElementById('gas-btn').addEventListener('touchend', function() { gasOn = false; });
+        document.getElementById('brake-btn').addEventListener('touchstart', function(e) { e.preventDefault(); brakeOn = true; });
+        document.getElementById('brake-btn').addEventListener('touchend', function() { brakeOn = false; });
 
-        function createCar(x, z, speed) {
-            const car = new THREE.Group();
-            const color = carColors[Math.floor(Math.random() * carColors.length)];
-            const carMat = new THREE.MeshStandardMaterial({ color: color, roughness: 0.2, metalness: 0.7 });
-            car.add(new THREE.Mesh(new THREE.BoxGeometry(1.8, 0.6, 4), carMat).position.set(0, 0.5, 0));
-            car.add(new THREE.Mesh(new THREE.BoxGeometry(1.6, 0.4, 2), 
-                new THREE.MeshStandardMaterial({ color: '#88ccff', roughness: 0.1, transparent: true, opacity: 0.7 })).position.set(0, 0.9, -0.2));
-            const wheelGeom = new THREE.CylinderGeometry(0.3, 0.3, 0.2, 8);
-            const wheelMat = new THREE.MeshStandardMaterial({ color: '#111', roughness: 0.9 });
-            for (let wx = -1; wx <= 1; wx += 2) {
-                for (let wz = -1; wz <= 1; wz += 2) {
-                    const wheel = new THREE.Mesh(wheelGeom, wheelMat);
-                    wheel.rotation.z = Math.PI / 2;
-                    wheel.position.set(wx * 0.8, 0.3, wz * 1.3);
-                    car.add(wheel);
-                }
-            }
-            car.position.set(x, 0.1, z);
-            car.userData = { speed: speed };
-            scene.add(car);
-            return car;
-        }
-
-        for (let i = 0; i < 8; i++) {
-            const lane = lanes[Math.floor(Math.random() * lanes.length)];
-            const spd = carSpeeds[Math.floor(Math.random() * carSpeeds.length)];
-            const z = -Math.random() * 60;
-            trafficCars.push(createCar(lane, z, spd));
-        }
-
-        // PARA
-        let money = parseInt(localStorage.getItem('motorRiderMoney')) || 0;
-        let totalDist = parseFloat(localStorage.getItem('motorRiderDistance')) || 0;
-        let saveCounter = 0;
-        let lastExhaustTime = 0;
-
-        function updateHUD() {
-            document.getElementById('speed-display').textContent = Math.floor(Math.abs(bike.speed));
-            document.getElementById('gear-display').textContent = bike.speed < -0.5 ? 'R' : (bike.gear === 0 ? 'N' : bike.gear);
-            document.getElementById('money-display').textContent = Math.floor(money).toLocaleString('tr-TR');
-            document.getElementById('distance-display').textContent = Math.floor(totalDist);
-            const rf = document.getElementById('rpm-fill');
-            rf.style.width = (bike.rpm * 100) + '%';
-            document.getElementById('rpm-text').textContent = Math.floor(bike.rpm * 10000) + ' RPM';
-            rf.style.background = bike.rpm > 0.9 ? '#ff0000' : bike.rpm > 0.7 ? 'linear-gradient(90deg, #ffd700, #ff4d00)' : 'linear-gradient(90deg, #00ff88, #ffd700)';
-        }
-
-        function saveProgress() {
-            try { localStorage.setItem('motorRiderMoney', Math.floor(money)); localStorage.setItem('motorRiderDistance', totalDist); } catch(e) {}
-        }
-
-        // INPUT
-        let gasOn = false, brakeOn = false, wheelieOn = false;
-        const keys = {};
-
-        document.getElementById('gas-btn').addEventListener('touchstart', (e) => { e.preventDefault(); gasOn = true; initAudio(); });
-        document.getElementById('gas-btn').addEventListener('touchend', () => { gasOn = false; });
-        document.getElementById('brake-btn').addEventListener('touchstart', (e) => { e.preventDefault(); brakeOn = true; });
-        document.getElementById('brake-btn').addEventListener('touchend', () => { brakeOn = false; });
-        document.getElementById('btn-wheelie').addEventListener('touchstart', (e) => { e.preventDefault(); wheelieOn = true; });
-        document.getElementById('btn-wheelie').addEventListener('touchend', () => { wheelieOn = false; });
-        document.getElementById('btn-horn').addEventListener('touchstart', (e) => { e.preventDefault(); playHorn(); });
-
-        window.addEventListener('keydown', (e) => {
-            keys[e.key.toLowerCase()] = true;
-            if (keys['h']) playHorn();
-            initAudio();
-        });
-        window.addEventListener('keyup', (e) => { keys[e.key.toLowerCase()] = false; });
+        // Klavye
+        var keys = {};
+        window.addEventListener('keydown', function(e) { keys[e.key.toLowerCase()] = true; });
+        window.addEventListener('keyup', function(e) { keys[e.key.toLowerCase()] = false; });
 
         function getInput() {
             return {
                 gas: gasOn || keys['w'] || keys['arrowup'] || false,
-                brake: brakeOn || keys['s'] || keys['arrowdown'] || false,
-                wheelie: wheelieOn || keys['shift'] || false,
-                left: keys['a'] || keys['arrowleft'] || false,
-                right: keys['d'] || keys['arrowright'] || false
+                brake: brakeOn || keys['s'] || keys['arrowdown'] || false
             };
         }
 
-        window.switchCamera = function() {
-            cameraMode = cameraMode === 1 ? 2 : (cameraMode === 2 ? 3 : 1);
-            document.getElementById('cam-label').textContent = { 1: 'ARKA', 2: 'ÖN', 3: 'ÜST' }[cameraMode];
-        };
+        var lastTime = performance.now();
 
-        // FİZİK
-        const bike = { speed: 0, maxSpeed: 200, gear: 0, rpm: 0, wheelieAngle: 0, lateralPos: 0, leanAngle: 0 };
-        const gearRatios = [0, 30, 55, 85, 120, 155, 200];
+        function loop() {
+            requestAnimationFrame(loop);
 
-        function updatePhysics(dt) {
-            const input = getInput();
-            if (input.gas) { if (bike.speed < 0) bike.speed += 50 * dt; else bike.speed += 40 * (settings.sensitivity / 100) * dt; }
-            if (input.brake) { if (bike.speed > 0) bike.speed -= 70 * dt; else if (bike.speed > -35) bike.speed -= 30 * dt; }
-            if (!input.gas && !input.brake) { if (bike.speed > 0) bike.speed -= 1 * dt; else if (bike.speed < 0) bike.speed += 1 * dt; }
-            bike.speed = Math.max(-35, Math.min(200, bike.speed));
-            if (Math.abs(bike.speed) < 0.3) bike.speed = 0;
-
-            if (bike.speed <= 0) bike.gear = 0;
-            else for (let g = 6; g >= 1; g--) if (bike.speed >= gearRatios[g-1]) { bike.gear = g; break; }
-
-            const absSpd = Math.abs(bike.speed);
-            bike.rpm = bike.gear === 0 ? (input.gas ? 0.25 : 0.05) : 0.15 + ((absSpd - gearRatios[bike.gear-1]) / (gearRatios[bike.gear] - gearRatios[bike.gear-1])) * 0.85;
-            bike.rpm = Math.max(0, Math.min(1, bike.rpm));
-
-            if (input.wheelie && bike.speed > 20) bike.wheelieAngle += 50 * dt;
-            else bike.wheelieAngle *= 0.85;
-            bike.wheelieAngle = Math.max(0, Math.min(45, bike.wheelieAngle));
-
-            if (input.left) { bike.lateralPos -= 6 * dt; bike.leanAngle = Math.max(-25, bike.leanAngle - 50 * dt); }
-            else if (input.right) { bike.lateralPos += 6 * dt; bike.leanAngle = Math.min(25, bike.leanAngle + 50 * dt); }
-            else { bike.leanAngle *= 0.9; }
-            bike.lateralPos = Math.max(-3.5, Math.min(3.5, bike.lateralPos));
-
-            const dist = (Math.abs(bike.speed) / 3.6) * dt;
-            totalDist += dist; saveCounter += dist;
-            money += dist * 0.05;
-            if (saveCounter > 50) { saveProgress(); saveCounter = 0; }
-
-            if (bike.rpm > 0.5 && Math.abs(bike.speed) > 30 && performance.now() - lastExhaustTime > 500) {
-                playExhaustSound();
-                lastExhaustTime = performance.now();
-                burstFlame();
-            }
-        }
-
-        // OYUN DÖNGÜSÜ
-        let lastTime = performance.now();
-        let trafficSpawnTimer = 0;
-
-        function gameLoop() {
-            requestAnimationFrame(gameLoop);
-            const now = performance.now();
-            const dt = Math.min((now - lastTime) / 1000, 0.1);
+            var now = performance.now();
+            var dt = Math.min((now - lastTime) / 1000, 0.1);
             lastTime = now;
 
-            updatePhysics(dt); updateHUD(); updateFlames(dt);
+            var input = getInput();
 
-            const moveSpeed = bike.speed * dt * 0.5;
-            segments.forEach(seg => {
-                seg.position.z += moveSpeed;
-                if (seg.position.z > segLen) seg.position.z -= totalSegs * segLen;
-                if (seg.position.z < -totalSegs * segLen) seg.position.z += totalSegs * segLen;
-            });
+            if (input.gas && speed < 200) speed += 40 * dt;
+            if (input.brake) {
+                if (speed > 0) speed -= 60 * dt;
+                else if (speed > -30) speed -= 25 * dt;
+            }
+            if (!input.gas && !input.brake) {
+                if (speed > 0) speed -= 0.8 * dt;
+                else if (speed < 0) speed += 0.8 * dt;
+            }
+            speed = Math.max(-30, Math.min(200, speed));
+            if (Math.abs(speed) < 0.2) speed = 0;
 
-            // Trafik
-            trafficSpawnTimer += dt;
-            if (trafficSpawnTimer > 2) {
-                trafficSpawnTimer = 0;
-                const lane = lanes[Math.floor(Math.random() * lanes.length)];
-                const spd = carSpeeds[Math.floor(Math.random() * carSpeeds.length)];
-                trafficCars.push(createCar(lane, -40, spd));
+            if (speed <= 0) gear = 0;
+            else for (var g = 6; g >= 1; g--) if (speed >= gears[g-1]) { gear = g; break; }
+
+            var d = (Math.abs(speed) / 3.6) * dt;
+            dist += d;
+            money += d * 0.05;
+
+            document.getElementById('speed').textContent = Math.floor(Math.abs(speed));
+            document.getElementById('gear').textContent = speed < -0.5 ? 'R' : (gear === 0 ? 'N' : gear);
+            document.getElementById('money').textContent = '🪙 ' + Math.floor(money).toLocaleString('tr-TR');
+
+            // Yol hareketi
+            for (var i = 0; i < segments.length; i++) {
+                segments[i].position.z += speed * dt * 0.5;
+                if (segments[i].position.z > SEG) segments[i].position.z -= COUNT * SEG;
+                if (segments[i].position.z < -COUNT * SEG) segments[i].position.z += COUNT * SEG;
             }
 
-            for (let i = trafficCars.length - 1; i >= 0; i--) {
-                const car = trafficCars[i];
-                car.position.z += moveSpeed + car.userData.speed * dt * 0.5;
-                if (car.position.z > 40 || car.position.z < -80) {
-                    scene.remove(car);
-                    trafficCars.splice(i, 1);
-                }
-            }
+            // Tekerlek
+            ft.rotation.x += speed * dt * 0.5;
+            rt.rotation.x += speed * dt * 0.5;
 
-            bikeGroup.position.x = bike.lateralPos;
-            bikeGroup.rotation.x = -bike.wheelieAngle * (Math.PI / 180);
-            bikeGroup.rotation.z = -bike.leanAngle * (Math.PI / 180);
-            bikeGroup.position.y = bike.wheelieAngle * 0.015;
-
-            const wheelRot = bike.speed * dt * 0.5;
-            frontTire.rotation.x += wheelRot;
-            rearTire.rotation.x += wheelRot;
-
-            if (cameraMode === 1) {
-                camera.position.lerp(new THREE.Vector3(bike.lateralPos * 0.3, 3 + Math.abs(bike.speed) * 0.01, -5 - Math.abs(bike.speed) * 0.02), 3 * dt);
-                camera.lookAt(bike.lateralPos * 0.3, 1, 15);
-            } else if (cameraMode === 2) {
-                camera.position.lerp(new THREE.Vector3(bike.lateralPos * 0.2, 1.6, 1.5), 3 * dt);
-                camera.lookAt(bike.lateralPos * 0.2, 1.2, -3);
-            } else {
-                camera.position.lerp(new THREE.Vector3(bike.lateralPos * 0.2, 12, 3), 3 * dt);
-                camera.lookAt(bike.lateralPos * 0.2, 0, 10);
-            }
+            // Kamera
+            camera.position.z = -7 - Math.abs(speed) * 0.02;
+            camera.position.y = 4 + Math.abs(speed) * 0.01;
+            camera.lookAt(0, 1, 10);
 
             renderer.render(scene, camera);
         }
 
-        window.addEventListener('resize', () => {
+        window.addEventListener('resize', function() {
             camera.aspect = window.innerWidth / window.innerHeight;
             camera.updateProjectionMatrix();
             renderer.setSize(window.innerWidth, window.innerHeight);
         });
-        window.addEventListener('beforeunload', () => saveProgress());
-        setInterval(() => saveProgress(), 5000);
 
-        updateHUD();
+        setInterval(function() {
+            localStorage.setItem('motorRiderMoney', Math.floor(money));
+            localStorage.setItem('motorRiderDistance', dist);
+        }, 3000);
+
         lastTime = performance.now();
-        gameLoop();
-        console.log('🏍️ Oyun başladı! Ses: AÇIK, Alev: AÇIK, Trafik: AÇIK');
+        loop();
+    };
     </script>
 </body>
 </html>
